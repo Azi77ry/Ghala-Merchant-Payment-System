@@ -1,54 +1,93 @@
+# Ghala Merchant Payment System
 
-# Ghala Core Systems Simulation
+This project is a submission for the **Ghala Technical Intern Challenge – Core Systems Simulation**. It simulates a basic system for managing merchant payment configurations and processing customer orders via WhatsApp commerce.
 
-This is a simplified simulation of how Ghala handles merchant payment configurations and order processing.
+## 🌐 Overview
 
-## 🌐 System Overview
+Ghala enables WhatsApp commerce for merchants. Each merchant can configure their preferred payment method (mobile, card, or bank). When a customer places an order, the system records it and updates the status based on payment confirmation.
 
-This system allows:
-- Merchants to configure and store their preferred payment methods (mobile, card, or bank).
-- Customers to place orders (mock product + total).
-- The system to record and manage order status: `pending`, `paid`, or `failed`.
-- Simulation of payment confirmation using background async tasks.
+This system demonstrates:
 
-## 🛠️ Tech Stack
-
-- **Backend**: Python (FastAPI)
-- **Frontend**: HTML, CSS, Bootstrap, JavaScript
-- **Data Storage**: In-memory (dictionaries)
+* Merchant payment method setup
+* Order creation and status updates
+* Simulated payment confirmation
 
 ---
 
-## ⚙️ System Functionality
+## ⚙️ Features
 
-### Merchants
-- Add new merchants and payment configuration via `merchant.html`
-- Payment Method includes:
-  - `label`: A user-defined label
-  - `provider`: Payment service (e.g., M-Pesa, Stripe)
-  - `config_fields`: Additional settings (JSON format)
+### Backend (Python Flask / Node.js / Django based)
 
-<!-- ### Orders
-- Place new orders using `create_order.html`
-- Orders automatically start in `pending` state
-- Status updated to `paid` after 5 seconds using async simulation
-- Manually trigger payment update using `orders.html` -->
+* Merchants can configure payment methods (mobile, card, bank) with relevant details
+* Customers can place mocked product orders
+* Each order starts as `pending`, and a mock function changes the status to `paid` after 5 seconds
+* RESTful API endpoints for merchants and orders
+
+### Frontend (HTML + CSS + JS or Bootstrap/Tailwind)
+
+* **Merchant Settings**: Form to input payment method and configuration
+* **Order List**: Display all orders with status
+* **Simulate Payment**: Button to manually trigger simulated payment confirmation
 
 ---
 
-## 🧠 Architecture + Thinking
+## 🧠 Architecture & Design Thinking
 
-### 1. Multi-Merchant Support
-- Each merchant is uniquely identified by `merchant.id`
-- All payment configurations are stored per merchant in memory
-- Orders reference merchant by ID for clarity and scalability
+### 🔄 Multiple Merchant Support
 
-### 2. Supporting Commission Rates (Extensibility)
-To support per-merchant commission rates:
-- Add a new field `commission_rate` to the `Merchant` model
-- Compute commissions during order processing
-- This allows tracking revenue for Ghala
+Each merchant's data is stored independently, including their payment method and configuration fields. The system uses unique merchant identifiers to ensure proper isolation and retrieval.
+
+### 💰 Commission Rates (Scalability Extension)
+
+To support different commission rates:
+
+* Add a `commission_rate` field to the merchant model
+* During payment processing, apply this rate when calculating the final amount
+
+### ⚡ Scaling to 10,000+ Merchants
+
+To handle scale:
+
+* Use asynchronous job queues (like Celery or Bull) for payment confirmation
+* Implement database indexing and caching
+* Use a microservices architecture and load balancing for backend services
+* Integrate a message queue (RabbitMQ, Kafka) for event-driven processing
+
+---
 
 
+## 🚀 How to Run
+# Python Flask
+pip install -r requirements.txt
+python app.py
 
 
+```
+
+
+## 📽️ Demo
+
+👉 (Optional) \[Loom video link here]
+
+---
+
+## 📁 Project Structure
+
+```
+ghala-system/
+├── backend/
+│   ├── app.py
+│   
+│ 
+├── frontend/
+│   ├── index.html
+│   
+└── README.md
+```
+
+---
+
+## 🧑‍💻 Author
+
+**Azizi Iddi**
+GitHub: [Azi77ry](https://github.com/Azi77ry)
