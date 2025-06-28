@@ -256,4 +256,4 @@ def get_status_distribution_analytics(merchant_id):
     return jsonify(distribution)
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+    app.run(debug=True, port=5000)
