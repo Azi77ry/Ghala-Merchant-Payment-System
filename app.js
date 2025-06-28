@@ -1,3 +1,634 @@
+// Global variables
+// let currentUser = null;
+// let currentMerchantId = null;
+let charts = {
+    orders: null,
+    paymentMethods: null,
+    revenue: null,
+    statusDistribution: null,
+    dailyPerformance: null,
+    monthlyTrends: null
+};
+
+// Initialize the app when the page loads
+document.addEventListener('DOMContentLoaded', function() {
+    init();
+    updateDateTime();
+    setInterval(updateDateTime, 60000); // Update time every minute
+    
+    // Initialize charts with empty data
+    initCharts();
+    
+    // Initialize tooltips
+    initTooltips();
+    
+    // Initialize dark mode toggle
+    initDarkMode();
+});
+
+function initTooltips() {
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+}
+
+function initDarkMode() {
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    if (darkModeToggle) {
+        darkModeToggle.addEventListener('click', toggleDarkMode);
+        
+        // Check for saved user preference
+        if (localStorage.getItem('darkMode') === 'enabled') {
+            document.body.classList.add('dark-mode');
+            darkModeToggle.innerHTML = '<i class="bi bi-sun-fill"></i>';
+        }
+    }
+}
+
+function toggleDarkMode() {
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    document.body.classList.toggle('dark-mode');
+    
+    if (document.body.classList.contains('dark-mode')) {
+        localStorage.setItem('darkMode', 'enabled');
+        darkModeToggle.innerHTML = '<i class="bi bi-sun-fill"></i>';
+    } else {
+        localStorage.setItem('darkMode', 'disabled');
+        darkModeToggle.innerHTML = '<i class="bi bi-moon-fill"></i>';
+    }
+    
+    // Update charts to match theme
+    updateChartThemes();
+}
+
+function updateChartThemes() {
+    const isDarkMode = document.body.classList.contains('dark-mode');
+    const textColor = isDarkMode ? '#f8f9fa' : '#212529';
+    const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+    
+    Object.values(charts).forEach(chart => {
+        if (chart) {
+            chart.options.scales.x.grid.color = gridColor;
+            chart.options.scales.y.grid.color = gridColor;
+            chart.options.scales.x.ticks.color = textColor;
+            chart.options.scales.y.ticks.color = textColor;
+            chart.update();
+        }
+    });
+}
+
+function updateDateTime() {
+    const now = new Date();
+    document.getElementById('dashboard-time').textContent = now.toLocaleString('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    document.getElementById('current-date').textContent = now.toLocaleDateString();
+}
+
+async function initCharts() {
+    if (!currentMerchantId) return;
+    
+    try {
+        // Load all analytics data in parallel
+        const [ordersData, paymentMethodsData, statusData] = await Promise.all([
+            fetch(`http://localhost:5000/analytics/orders/${currentMerchantId}`).then(res => res.json()),
+            fetch(`http://localhost:5000/analytics/payment-methods/${currentMerchantId}`).then(res => res.json()),
+            fetch(`http://localhost:5000/analytics/status-distribution/${currentMerchantId}`).then(res => res.json())
+        ]);
+        
+        createOrdersChart(ordersData);
+        createPaymentMethodsChart(paymentMethodsData);
+        createStatusDistributionChart(statusData);
+        createRevenueChart(ordersData);
+        createDailyPerformanceChart(ordersData);
+        createMonthlyTrendsChart();
+        
+        updateChartThemes();
+    } catch (error) {
+        console.error('Error initializing charts:', error);
+    }
+}
+
+function createOrdersChart(data) {
+    const ctx = document.getElementById('ordersChart').getContext('2d');
+    
+    // Process data for chart
+    const labels = data.dates;
+    const orderData = data.order_counts;
+    
+    if (charts.orders) {
+        charts.orders.data.labels = labels;
+        charts.orders.data.datasets[0].data = orderData;
+        charts.orders.update();
+        return;
+    }
+    
+    charts.orders = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Orders',
+                data: orderData,
+                backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                borderColor: 'rgba(102, 126, 234, 1)',
+                borderWidth: 2,
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: 'rgba(102, 126, 234, 1)',
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    },
+                    ticks: {
+                        color: '#212529'
+                    }
+                },
+                x: {
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    },
+                    ticks: {
+                        color: '#212529'
+                    }
+                }
+            }
+        }
+    });
+}
+
+function createPaymentMethodsChart(data) {
+    const ctx = document.getElementById('paymentMethodsChart').getContext('2d');
+    
+    const labels = ['Mobile', 'Card', 'Bank'];
+    const chartData = [data.mobile || 0, data.card || 0, data.bank || 0];
+    
+    if (charts.paymentMethods) {
+        charts.paymentMethods.data.datasets[0].data = chartData;
+        charts.paymentMethods.update();
+        return;
+    }
+    
+    charts.paymentMethods = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: chartData,
+                backgroundColor: [
+                    'rgba(67, 233, 123, 0.7)',
+                    'rgba(102, 126, 234, 0.7)',
+                    'rgba(255, 193, 7, 0.7)'
+                ],
+                borderWidth: 0,
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20
+                    }
+                }
+            }
+        }
+    });
+}
+
+function createRevenueChart(data) {
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+    
+    // Process data for chart
+    const labels = data.dates;
+    const revenueData = data.revenue_data;
+    
+    if (charts.revenue) {
+        charts.revenue.data.labels = labels;
+        charts.revenue.data.datasets[0].data = revenueData;
+        charts.revenue.update();
+        return;
+    }
+    
+    charts.revenue = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Revenue ($)',
+                data: revenueData,
+                backgroundColor: 'rgba(102, 126, 234, 0.7)',
+                borderRadius: 4,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    },
+                    ticks: {
+                        color: '#212529'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: '#212529'
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `$${context.raw.toFixed(2)}`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function createStatusDistributionChart(data) {
+    const ctx = document.getElementById('statusDistributionChart').getContext('2d');
+    
+    const labels = ['Paid', 'Pending', 'Failed'];
+    const chartData = [data.paid || 0, data.pending || 0, data.failed || 0];
+    
+    if (charts.statusDistribution) {
+        charts.statusDistribution.data.datasets[0].data = chartData;
+        charts.statusDistribution.update();
+        return;
+    }
+    
+    charts.statusDistribution = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: chartData,
+                backgroundColor: [
+                    'rgba(67, 233, 123, 0.7)',
+                    'rgba(255, 193, 7, 0.7)',
+                    'rgba(255, 117, 140, 0.7)'
+                ],
+                borderWidth: 0,
+                hoverOffset: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.label}: ${context.raw}%`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function createDailyPerformanceChart(data) {
+    const ctx = document.getElementById('dailyPerformanceChart').getContext('2d');
+    
+    // Process data for chart
+    const labels = data.dates;
+    const orderData = data.order_counts;
+    const revenueData = data.revenue_data;
+    
+    if (charts.dailyPerformance) {
+        charts.dailyPerformance.data.labels = labels;
+        charts.dailyPerformance.data.datasets[0].data = orderData;
+        charts.dailyPerformance.data.datasets[1].data = revenueData;
+        charts.dailyPerformance.update();
+        return;
+    }
+    
+    charts.dailyPerformance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Orders',
+                data: orderData,
+                borderColor: 'rgba(102, 126, 234, 1)',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                borderWidth: 2,
+                tension: 0.4,
+                fill: true,
+                yAxisID: 'y'
+            }, {
+                label: 'Revenue ($)',
+                data: revenueData,
+                borderColor: 'rgba(67, 233, 123, 1)',
+                backgroundColor: 'rgba(67, 233, 123, 0.1)',
+                borderWidth: 2,
+                tension: 0.4,
+                fill: true,
+                yAxisID: 'y1'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    },
+                    ticks: {
+                        color: '#212529'
+                    }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    beginAtZero: true,
+                    grid: {
+                        drawOnChartArea: false,
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    },
+                    ticks: {
+                        color: '#212529'
+                    }
+                },
+                x: {
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    },
+                    ticks: {
+                        color: '#212529'
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.datasetIndex === 1) {
+                                label += `$${context.raw.toFixed(2)}`;
+                            } else {
+                                label += context.raw;
+                            }
+                            return label;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+function createMonthlyTrendsChart() {
+    const ctx = document.getElementById('monthlyTrendsChart').getContext('2d');
+    
+    // Generate mock data for monthly trends
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const revenueData = months.map(() => Math.floor(Math.random() * 5000) + 1000);
+    const growthData = months.map((_, i) => {
+        if (i === 0) return 0;
+        return ((revenueData[i] - revenueData[i-1]) / revenueData[i-1] * 100).toFixed(1);
+    });
+    
+    if (charts.monthlyTrends) {
+        charts.monthlyTrends.data.datasets[0].data = revenueData;
+        charts.monthlyTrends.data.datasets[1].data = growthData;
+        charts.monthlyTrends.update();
+        return;
+    }
+    
+    charts.monthlyTrends = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: months,
+            datasets: [{
+                label: 'Revenue ($)',
+                data: revenueData,
+                backgroundColor: 'rgba(102, 126, 234, 0.7)',
+                borderRadius: 4,
+                borderSkipped: false,
+                yAxisID: 'y'
+            }, {
+                label: 'Growth Rate (%)',
+                data: growthData,
+                type: 'line',
+                borderColor: 'rgba(67, 233, 123, 1)',
+                backgroundColor: 'rgba(67, 233, 123, 0.1)',
+                borderWidth: 2,
+                tension: 0.4,
+                fill: false,
+                yAxisID: 'y1'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    },
+                    ticks: {
+                        color: '#212529'
+                    }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    beginAtZero: true,
+                    grid: {
+                        drawOnChartArea: false,
+                        color: 'rgba(0, 0, 0, 0.1)'
+                    },
+                    ticks: {
+                        color: '#212529'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    },
+                    ticks: {
+                        color: '#212529'
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.datasetIndex === 0) {
+                                label += `$${context.raw.toFixed(2)}`;
+                            } else {
+                                label += `${context.raw}%`;
+                            }
+                            return label;
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// ... (rest of your existing code remains the same, but update the loadOrders function to refresh charts)
+
+async function loadOrders() {
+    try {
+        const response = await fetch(`http://localhost:5000/orders/${currentMerchantId}`);
+        const orders = await response.json();
+        
+        // Update orders table
+        ordersTable.innerHTML = '';
+        recentOrdersTable.innerHTML = '';
+        
+        let totalOrders = 0;
+        let paidOrders = 0;
+        let failedOrders = 0;
+        let totalRevenue = 0;
+        
+        // Sort orders by timestamp (newest first)
+        orders.sort((a, b) => b.timestamp - a.timestamp);
+        
+        orders.forEach(order => {
+            totalOrders++;
+            if (order.status === 'paid') {
+                paidOrders++;
+                totalRevenue += order.total;
+            }
+            if (order.status === 'failed') failedOrders++;
+            
+            // Format date
+            const date = new Date(order.timestamp * 1000);
+            const dateStr = date.toLocaleString();
+            
+            // Add to main orders table
+            const row = document.createElement('tr');
+            row.className = 'order-card';
+            row.innerHTML = `
+                <td>${order.id.substring(0, 8)}...</td>
+                <td>${order.customer_name}</td>
+                <td>${order.product}</td>
+                <td>$${order.total.toFixed(2)}</td>
+                <td><span class="status-badge status-${order.status}">${order.status}</span></td>
+                <td>${dateStr}</td>
+                <td>
+                    ${order.status === 'pending' ? 
+                        `<button class="btn btn-sm btn-outline-primary simulate-payment" data-order-id="${order.id}" data-bs-toggle="tooltip" title="Simulate payment processing">
+                            <i class="bi bi-credit-card"></i>
+                        </button>` : ''}
+                </td>
+            `;
+            ordersTable.appendChild(row);
+            
+            // Add to recent orders table (only first 5)
+            if (recentOrdersTable.children.length < 5) {
+                const recentRow = document.createElement('tr');
+                recentRow.innerHTML = `
+                    <td>${order.id.substring(0, 8)}...</td>
+                    <td>${order.product}</td>
+                    <td>$${order.total.toFixed(2)}</td>
+                    <td><span class="status-badge status-${order.status}">${order.status}</span></td>
+                    <td>${dateStr}</td>
+                `;
+                recentOrdersTable.appendChild(recentRow);
+            }
+        });
+        
+        // Update dashboard counters
+        totalOrdersDisplay.textContent = totalOrders;
+        paidOrdersDisplay.textContent = paidOrders;
+        failedOrdersDisplay.textContent = failedOrders;
+        
+        // Update revenue display
+        document.getElementById('total-revenue').textContent = `$${totalRevenue.toFixed(2)}`;
+        
+        // Add event listeners to simulate payment buttons
+        document.querySelectorAll('.simulate-payment').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const orderId = e.target.closest('button').getAttribute('data-order-id');
+                simulatePayment(orderId);
+            });
+        });
+        
+        // Refresh charts with new data
+        initCharts();
+    } catch (error) {
+        console.error('Error loading orders:', error);
+    }
+}
+
+// ... (rest of your existing code remains the same)
+
 
     // Global variables
         let currentUser = null;
