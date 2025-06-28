@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghala Merchant Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+     <link rel="stylesheet" href="styles.css">
+<body>
+    <!-- Login Screen -->
+    <div id="login-screen" class="login-container animate__animated animate__fadeIn">
+        <h2>Welcome to Ghala Merchant Portal</h2>
+        <div class="mb-4">
+            <label for="username" class="form-label">Username</label>
+            <input type="text" class="form-control" id="username" placeholder="Enter your username">
+        </div>
+        <div class="mb-4">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="password" placeholder="Enter your password">
+        </div>
+        <button id="login-btn" class="btn btn-primary w-100">
+            <i class="bi bi-box-arrow-in-right"></i> Login
+        </button>
+        <div class="text-center mt-3">
+            <img src="https://via.placeholder.com/150x50?text=Ghala+Logo" alt="Ghala Logo" class="img-fluid mt-4" style="opacity: 0.7;">
+        </div>
+    </div>
+
+    <!-- Main App (hidden initially) -->
+    <div id="app-container" style="display: none;">
+        <!-- Mobile Navbar Toggle -->
+        <nav class="navbar navbar-light bg-white d-lg-none fixed-top shadow-sm">
+            <div class="container-fluid">
+                <button class="navbar-toggler" type="button" id="sidebarToggle">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <a class="navbar-brand ms-2" href="#">
+                    <img src="https://via.placeholder.com/120x30?text=Ghala" height="30" alt="Ghala Logo">
+                </a>
+            </div>
+        </nav>
+
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <img src="https://via.placeholder.com/40x40?text=G" alt="Ghala Logo">
+                <h5 class="mb-0">Ghala Merchant</h5>
+            </div>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#" data-section="dashboard">
+                        <i class="bi bi-speedometer2"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-section="payment-settings">
+                        <i class="bi bi-credit-card-2-front"></i> Payment Settings
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-section="orders">
+                        <i class="bi bi-receipt-cutoff"></i> Orders
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-section="analytics">
+                        <i class="bi bi-graph-up"></i> Analytics
+                    </a>
+                </li>
+                <li class="nav-item mt-4">
+                    <a class="nav-link text-danger" href="#" id="logout-btn">
+                        <i class="bi bi-box-arrow-left"></i> Logout
+                    </a>
+                </li>
+            </ul>
+            <div class="sidebar-footer px-3 py-2 position-absolute bottom-0 start-0 end-0">
+                <div class="text-white-50 small">
+                    <div id="current-username" class="fw-bold"></div>
+                    <div class="d-flex justify-content-between">
+                        <span>v1.0.0</span>
+                        <span id="current-date"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Dashboard Section -->
+            <div id="dashboard-section" class="fade-in">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="mb-0">Dashboard Overview</h3>
+                    <div class="text-muted" id="dashboard-time"></div>
+                </div>
+                
+                <!-- Stats Cards -->
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card stat-card total">
+                            <div class="card-body">
+                                <div class="stat-value" id="total-orders">0</div>
+                                <div class="stat-label">Total Orders</div>
+                                <i class="bi bi-cart3 float-end" style="font-size: 2rem; opacity: 0.2;"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card stat-card paid">
+                            <div class="card-body">
+                                <div class="stat-value" id="paid-orders">0</div>
+                                <div class="stat-label">Successful Payments</div>
+                                <i class="bi bi-check-circle float-end" style="font-size: 2rem; opacity: 0.2;"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card stat-card failed">
+                            <div class="card-body">
+                                <div class="stat-value" id="failed-orders">0</div>
+                                <div class="stat-label">Failed Payments</div>
+                                <i class="bi bi-x-circle float-end" style="font-size: 2rem; opacity: 0.2;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Charts Row -->
+                <div class="row mt-4">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <span>Orders Overview</span>
+                                <select class="form-select form-select-sm w-auto" id="chart-timeframe">
+                                    <option value="7">Last 7 Days</option>
+                                    <option value="30" selected>Last 30 Days</option>
+                                    <option value="90">Last 90 Days</option>
+                                </select>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="ordersChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">
+                                Payment Methods
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="paymentMethodsChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recent Orders -->
+                <div class="card mt-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>Recent Orders</span>
+                        <button class="btn btn-sm btn-outline-secondary" id="refresh-dashboard-btn">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Customer</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recent-orders-table">
+                                    <!-- Filled by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Settings Section -->
+            <div id="payment-settings-section" style="display: none;" class="fade-in">
+                <h3 class="mb-4">Payment Settings</h3>
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="bi bi-gear me-2"></i>Configure Payment Method
+                            </div>
+                            <div class="card-body">
+                                <form id="payment-settings-form">
+                                    <div class="mb-3">
+                                        <label for="payment-method" class="form-label">Payment Method</label>
+                                        <select class="form-select" id="payment-method">
+                                            <option value="">Select a payment method</option>
+                                            <option value="mobile">Mobile Money</option>
+                                            <option value="card">Credit/Debit Card</option>
+                                            <option value="bank">Bank Transfer</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div id="method-config-fields">
+                                        <!-- Dynamically generated based on payment method -->
+                                    </div>
+                                    
+                                    <button type="submit" class="btn btn-primary mt-3">
+                                        <i class="bi bi-save"></i> Save Settings
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="bi bi-info-circle me-2"></i>Current Settings
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-info" id="no-settings-message">
+                                    <i class="bi bi-exclamation-circle me-2"></i>No payment method configured yet.
+                                </div>
+                                <div id="settings-display" style="display: none;">
+                                    <div class="p-3 bg-light rounded">
+                                        <h5 class="mb-3">Active Payment Method</h5>
+                                        <div id="settings-data" class="mb-3"></div>
+                                        <div class="alert alert-success">
+                                            <i class="bi bi-check-circle me-2"></i>Settings are active and ready to receive payments
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mt-4">
+                            <div class="card-header">
+                                <i class="bi bi-shield-check me-2"></i>Security Tips
+                            </div>
+                            <div class="card-body">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex align-items-center">
+                                        <i class="bi bi-check-circle text-success me-2"></i>
+                                        Never share your credentials
+                                    </li>
+                                    <li class="list-group-item d-flex align-items-center">
+                                        <i class="bi bi-check-circle text-success me-2"></i>
+                                        Use strong passwords
+                                    </li>
+                                    <li class="list-group-item d-flex align-items-center">
+                                        <i class="bi bi-check-circle text-success me-2"></i>
+                                        Enable 2FA if available
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders Section -->
+            <div id="orders-section" style="display: none;" class="fade-in">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="mb-0">Order Management</h3>
+                    <div>
+                        <button id="create-order-btn" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Create Test Order
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-list-ul me-2"></i>Order List</span>
+                        <div>
+                            <button id="refresh-orders-btn" class="btn btn-sm btn-outline-secondary me-2">
+                                <i class="bi bi-arrow-clockwise"></i> Refresh
+                            </button>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-funnel"></i> Filter
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="#" data-filter="all">All Orders</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#" data-filter="pending">Pending</a></li>
+                                    <li><a class="dropdown-item" href="#" data-filter="paid">Paid</a></li>
+                                    <li><a class="dropdown-item" href="#" data-filter="failed">Failed</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Customer</th>
+                                        <th>Product</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="orders-table">
+                                    <!-- Filled by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card-footer d-flex justify-content-between align-items-center">
+                        <div class="text-muted small" id="orders-count">Showing 0 orders</div>
+                        <nav>
+                            <ul class="pagination pagination-sm mb-0">
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" tabindex="-1">Previous</a>
+                                </li>
+                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                <li class="page-item">
+                                    <a class="page-link" href="#">Next</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Section -->
+            <div id="analytics-section" style="display: none;" class="fade-in">
+                <h3 class="mb-4">Business Analytics</h3>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="bi bi-bar-chart me-2"></i>Revenue Overview
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="revenueChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="bi bi-pie-chart me-2"></i>Payment Status Distribution
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="statusDistributionChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="bi bi-calendar-event me-2"></i>Daily Performance
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="dailyPerformanceChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Floating Action Button -->
+        <div class="fab animate__animated animate__bounceIn" id="help-fab" title="Get Help">
+            <i class="bi bi-question-lg"></i>
+        </div>
+
+        <!-- Create Order Modal -->
+        <div class="modal fade" id="createOrderModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="bi bi-plus-circle me-2"></i>Create Test Order
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="create-order-form">
+                            <div class="mb-3">
+                                <label for="customer-name" class="form-label">Customer Name</label>
+                                <input type="text" class="form-control" id="customer-name" value="Test Customer">
+                            </div>
+                            <div class="mb-3">
+                                <label for="product-name" class="form-label">Product</label>
+                                <input type="text" class="form-control" id="product-name" value="Test Product">
+                            </div>
+                            <div class="mb-3">
+                                <label for="order-amount" class="form-label">Amount</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="order-amount" value="100">
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle me-2"></i>Cancel
+                        </button>
+                        <button type="button" class="btn btn-primary" id="confirm-create-order">
+                            <i class="bi bi-check-circle me-2"></i>Create Order
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help Modal -->
+        <div class="modal fade" id="helpModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">
+                            <i class="bi bi-question-circle me-2"></i>Help Center
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>This is a demo application for the Ghala Technical Intern Challenge.
+                        </div>
+                        <h5>Features Guide</h5>
+                        <ul class="list-group list-group-flush mb-3">
+                            <li class="list-group-item">
+                                <strong>Dashboard:</strong> Overview of your orders and payments
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Payment Settings:</strong> Configure your preferred payment methods
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Orders:</strong> View and manage all customer orders
+                            </li>
+                            <li class="list-group-item">
+                                <strong>Analytics:</strong> Visualize your business performance
+                            </li>
+                        </ul>
+                        <div class="text-center mt-3">
+                            <img src="https://via.placeholder.com/300x100?text=Ghala+Support" alt="Support" class="img-fluid">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                            <i class="bi bi-check-circle me-2"></i>Got it!
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+     <script src="app.js"></script>
