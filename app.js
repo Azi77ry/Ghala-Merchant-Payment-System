@@ -1,6 +1,6 @@
 // Global variables
-// let currentUser = null;
-// let currentMerchantId = null;
+let currentUser = null;
+let currentMerchantId = null;
 let charts = {
     orders: null,
     paymentMethods: null,
@@ -10,11 +10,37 @@ let charts = {
     monthlyTrends: null
 };
 
+// DOM Elements
+const loginScreen = document.getElementById('login-screen');
+const appContainer = document.getElementById('app-container');
+const loginBtn = document.getElementById('login-btn');
+const logoutBtn = document.getElementById('logout-btn');
+const usernameInput = document.getElementById('username');
+const passwordInput = document.getElementById('password');
+const currentUsernameDisplay = document.getElementById('current-username');
+const ordersTable = document.getElementById('orders-table');
+const recentOrdersTable = document.getElementById('recent-orders-table');
+const totalOrdersDisplay = document.getElementById('total-orders');
+const paidOrdersDisplay = document.getElementById('paid-orders');
+const failedOrdersDisplay = document.getElementById('failed-orders');
+const paymentMethodSelect = document.getElementById('payment-method');
+const methodConfigFields = document.getElementById('method-config-fields');
+const paymentSettingsForm = document.getElementById('payment-settings-form');
+const noSettingsMessage = document.getElementById('no-settings-message');
+const settingsDisplay = document.getElementById('settings-display');
+const settingsData = document.getElementById('settings-data');
+const createOrderBtn = document.getElementById('create-order-btn');
+const refreshOrdersBtn = document.getElementById('refresh-orders-btn');
+const confirmCreateOrderBtn = document.getElementById('confirm-create-order');
+
+// Navigation links
+const navLinks = document.querySelectorAll('.nav-link[data-section]');
+
 // Initialize the app when the page loads
 document.addEventListener('DOMContentLoaded', function() {
     init();
     updateDateTime();
-    setInterval(updateDateTime, 60000); // Update time every minute
+    setInterval(updateDateTime, 60000);
     
     // Initialize charts with empty data
     initCharts();
@@ -24,7 +50,49 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize dark mode toggle
     initDarkMode();
+    
+    // Initialize sidebar toggle
+    document.getElementById('sidebarToggle').addEventListener('click', function() {
+        document.getElementById('sidebar').classList.toggle('active');
+    });
+    
+    // Initialize help FAB
+    document.getElementById('help-fab').addEventListener('click', function() {
+        new bootstrap.Modal(document.getElementById('helpModal')).show();
+    });
+    
+    // Event listeners
+    loginBtn.addEventListener('click', handleLogin);
+    logoutBtn.addEventListener('click', handleLogout);
+    
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const section = link.getAttribute('data-section');
+            showSection(section);
+            
+            // Update active state
+            navLinks.forEach(navLink => navLink.classList.remove('active'));
+            link.classList.add('active');
+        });
+    });
+    
+    paymentMethodSelect.addEventListener('change', updatePaymentMethodFields);
+    paymentSettingsForm.addEventListener('submit', savePaymentSettings);
+    createOrderBtn.addEventListener('click', () => new bootstrap.Modal(document.getElementById('createOrderModal')).show());
+    confirmCreateOrderBtn.addEventListener('click', createTestOrder);
+    refreshOrdersBtn.addEventListener('click', loadOrders);
 });
+
+function init() {
+    // Check if user is already logged in
+    const savedUser = sessionStorage.getItem('ghalaUser');
+    if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+        currentMerchantId = currentUser.merchant_id || 'm1';
+        showApp();
+    }
+}
 
 function initTooltips() {
     const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -58,7 +126,6 @@ function toggleDarkMode() {
         darkModeToggle.innerHTML = '<i class="bi bi-moon-fill"></i>';
     }
     
-    // Update charts to match theme
     updateChartThemes();
 }
 
@@ -117,7 +184,6 @@ async function initCharts() {
 function createOrdersChart(data) {
     const ctx = document.getElementById('ordersChart').getContext('2d');
     
-    // Process data for chart
     const labels = data.dates;
     const orderData = data.order_counts;
     
@@ -227,7 +293,6 @@ function createPaymentMethodsChart(data) {
 function createRevenueChart(data) {
     const ctx = document.getElementById('revenueChart').getContext('2d');
     
-    // Process data for chart
     const labels = data.dates;
     const revenueData = data.revenue_data;
     
@@ -338,7 +403,6 @@ function createStatusDistributionChart(data) {
 function createDailyPerformanceChart(data) {
     const ctx = document.getElementById('dailyPerformanceChart').getContext('2d');
     
-    // Process data for chart
     const labels = data.dates;
     const orderData = data.order_counts;
     const revenueData = data.revenue_data;
@@ -442,7 +506,6 @@ function createDailyPerformanceChart(data) {
 function createMonthlyTrendsChart() {
     const ctx = document.getElementById('monthlyTrendsChart').getContext('2d');
     
-    // Generate mock data for monthly trends
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const revenueData = months.map(() => Math.floor(Math.random() * 5000) + 1000);
     const growthData = months.map((_, i) => {
@@ -540,356 +603,6 @@ function createMonthlyTrendsChart() {
     });
 }
 
-// ... (rest of your existing code remains the same, but update the loadOrders function to refresh charts)
-
-async function loadOrders() {
-    try {
-        const response = await fetch(`http://localhost:5000/orders/${currentMerchantId}`);
-        const orders = await response.json();
-        
-        // Update orders table
-        ordersTable.innerHTML = '';
-        recentOrdersTable.innerHTML = '';
-        
-        let totalOrders = 0;
-        let paidOrders = 0;
-        let failedOrders = 0;
-        let totalRevenue = 0;
-        
-        // Sort orders by timestamp (newest first)
-        orders.sort((a, b) => b.timestamp - a.timestamp);
-        
-        orders.forEach(order => {
-            totalOrders++;
-            if (order.status === 'paid') {
-                paidOrders++;
-                totalRevenue += order.total;
-            }
-            if (order.status === 'failed') failedOrders++;
-            
-            // Format date
-            const date = new Date(order.timestamp * 1000);
-            const dateStr = date.toLocaleString();
-            
-            // Add to main orders table
-            const row = document.createElement('tr');
-            row.className = 'order-card';
-            row.innerHTML = `
-                <td>${order.id.substring(0, 8)}...</td>
-                <td>${order.customer_name}</td>
-                <td>${order.product}</td>
-                <td>$${order.total.toFixed(2)}</td>
-                <td><span class="status-badge status-${order.status}">${order.status}</span></td>
-                <td>${dateStr}</td>
-                <td>
-                    ${order.status === 'pending' ? 
-                        `<button class="btn btn-sm btn-outline-primary simulate-payment" data-order-id="${order.id}" data-bs-toggle="tooltip" title="Simulate payment processing">
-                            <i class="bi bi-credit-card"></i>
-                        </button>` : ''}
-                </td>
-            `;
-            ordersTable.appendChild(row);
-            
-            // Add to recent orders table (only first 5)
-            if (recentOrdersTable.children.length < 5) {
-                const recentRow = document.createElement('tr');
-                recentRow.innerHTML = `
-                    <td>${order.id.substring(0, 8)}...</td>
-                    <td>${order.product}</td>
-                    <td>$${order.total.toFixed(2)}</td>
-                    <td><span class="status-badge status-${order.status}">${order.status}</span></td>
-                    <td>${dateStr}</td>
-                `;
-                recentOrdersTable.appendChild(recentRow);
-            }
-        });
-        
-        // Update dashboard counters
-        totalOrdersDisplay.textContent = totalOrders;
-        paidOrdersDisplay.textContent = paidOrders;
-        failedOrdersDisplay.textContent = failedOrders;
-        
-        // Update revenue display
-        document.getElementById('total-revenue').textContent = `$${totalRevenue.toFixed(2)}`;
-        
-        // Add event listeners to simulate payment buttons
-        document.querySelectorAll('.simulate-payment').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const orderId = e.target.closest('button').getAttribute('data-order-id');
-                simulatePayment(orderId);
-            });
-        });
-        
-        // Refresh charts with new data
-        initCharts();
-    } catch (error) {
-        console.error('Error loading orders:', error);
-    }
-}
-
-// ... (rest of your existing code remains the same)
-
-
-    // Global variables
-        let currentUser = null;
-        let currentMerchantId = null;
-        let ordersChart, paymentMethodsChart, revenueChart, statusDistributionChart, dailyPerformanceChart;
-        
-        // Initialize the app when the page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            init();
-            updateDateTime();
-            setInterval(updateDateTime, 60000); // Update time every minute
-            
-            // Initialize charts with empty data
-            initCharts();
-        });
-        
-        function updateDateTime() {
-            const now = new Date();
-            document.getElementById('dashboard-time').textContent = now.toLocaleString('en-US', {
-                weekday: 'long',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            document.getElementById('current-date').textContent = now.toLocaleDateString();
-        }
-        
-        function initCharts() {
-            const ctx1 = document.getElementById('ordersChart').getContext('2d');
-            ordersChart = new Chart(ctx1, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Orders',
-                        data: [],
-                        backgroundColor: 'rgba(102, 126, 234, 0.2)',
-                        borderColor: 'rgba(102, 126, 234, 1)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-            
-            const ctx2 = document.getElementById('paymentMethodsChart').getContext('2d');
-            paymentMethodsChart = new Chart(ctx2, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Mobile', 'Card', 'Bank'],
-                    datasets: [{
-                        data: [30, 45, 25],
-                        backgroundColor: [
-                            'rgba(67, 233, 123, 0.7)',
-                            'rgba(102, 126, 234, 0.7)',
-                            'rgba(255, 193, 7, 0.7)'
-                        ],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }
-            });
-            
-            const ctx3 = document.getElementById('revenueChart').getContext('2d');
-            revenueChart = new Chart(ctx3, {
-                type: 'bar',
-                data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                    datasets: [{
-                        label: 'Revenue ($)',
-                        data: [1200, 1900, 1500, 2000, 1800, 2200],
-                        backgroundColor: 'rgba(102, 126, 234, 0.7)'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-            
-            const ctx4 = document.getElementById('statusDistributionChart').getContext('2d');
-            statusDistributionChart = new Chart(ctx4, {
-                type: 'pie',
-                data: {
-                    labels: ['Paid', 'Pending', 'Failed'],
-                    datasets: [{
-                        data: [65, 15, 20],
-                        backgroundColor: [
-                            'rgba(67, 233, 123, 0.7)',
-                            'rgba(255, 193, 7, 0.7)',
-                            'rgba(255, 117, 140, 0.7)'
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }
-            });
-            
-            const ctx5 = document.getElementById('dailyPerformanceChart').getContext('2d');
-            dailyPerformanceChart = new Chart(ctx5, {
-                type: 'line',
-                data: {
-                    labels: Array.from({length: 30}, (_, i) => `Day ${i+1}`),
-                    datasets: [{
-                        label: 'Orders',
-                        data: Array.from({length: 30}, () => Math.floor(Math.random() * 20) + 5),
-                        borderColor: 'rgba(102, 126, 234, 1)',
-                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        fill: true
-                    }, {
-                        label: 'Revenue',
-                        data: Array.from({length: 30}, () => Math.floor(Math.random() * 500) + 100),
-                        borderColor: 'rgba(67, 233, 123, 1)',
-                        backgroundColor: 'rgba(67, 233, 123, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-        }
-        
-// let currentUser = null;
-// let currentMerchantId = null;
-let paymentMethodsConfig = {
-    mobile: {
-        required_fields: ["label", "provider", "phone_number"],
-        providers: ["MTN", "Airtel", "Zamtel"]
-    },
-    card: {
-        required_fields: ["label", "card_number", "expiry", "cvv"],
-        providers: ["Visa", "Mastercard", "American Express"]
-    },
-    bank: {
-        required_fields: ["label", "account_number", "bank_name", "branch_code"],
-        providers: ["ZANACO", "Stanbic", "Absa", "FNB"]
-    }
-};
-
-// DOM Elements
-const loginScreen = document.getElementById('login-screen');
-const appContainer = document.getElementById('app-container');
-const loginBtn = document.getElementById('login-btn');
-const logoutBtn = document.getElementById('logout-btn');
-const usernameInput = document.getElementById('username');
-const passwordInput = document.getElementById('password');
-const currentUsernameDisplay = document.getElementById('current-username');
-
-// Section elements
-const dashboardSection = document.getElementById('dashboard-section');
-const paymentSettingsSection = document.getElementById('payment-settings-section');
-const ordersSection = document.getElementById('orders-section');
-
-// Navigation links
-const navLinks = document.querySelectorAll('.nav-link[data-section]');
-
-// Payment settings elements
-const paymentMethodSelect = document.getElementById('payment-method');
-const methodConfigFields = document.getElementById('method-config-fields');
-const paymentSettingsForm = document.getElementById('payment-settings-form');
-const noSettingsMessage = document.getElementById('no-settings-message');
-const settingsDisplay = document.getElementById('settings-display');
-const settingsData = document.getElementById('settings-data');
-
-// Orders elements
-const createOrderBtn = document.getElementById('create-order-btn');
-const refreshOrdersBtn = document.getElementById('refresh-orders-btn');
-const ordersTable = document.getElementById('orders-table');
-const recentOrdersTable = document.getElementById('recent-orders-table');
-const totalOrdersDisplay = document.getElementById('total-orders');
-const paidOrdersDisplay = document.getElementById('paid-orders');
-const failedOrdersDisplay = document.getElementById('failed-orders');
-
-// Modals
-const createOrderModal = new bootstrap.Modal(document.getElementById('createOrderModal'));
-const confirmCreateOrderBtn = document.getElementById('confirm-create-order');
-
-// Event Listeners
-loginBtn.addEventListener('click', handleLogin);
-logoutBtn.addEventListener('click', handleLogout);
-
-navLinks.forEach(link => {
-    link.addEventListener('click', (e) => {
-        e.preventDefault();
-        const section = link.getAttribute('data-section');
-        showSection(section);
-        
-        // Update active state
-        navLinks.forEach(navLink => navLink.classList.remove('active'));
-        link.classList.add('active');
-    });
-});
-
-paymentMethodSelect.addEventListener('change', updatePaymentMethodFields);
-paymentSettingsForm.addEventListener('submit', savePaymentSettings);
-createOrderBtn.addEventListener('click', () => createOrderModal.show());
-confirmCreateOrderBtn.addEventListener('click', createTestOrder);
-refreshOrdersBtn.addEventListener('click', loadOrders);
-
-// Initialize the app
-function init() {
-    // Check if user is already logged in (from sessionStorage)
-    const savedUser = sessionStorage.getItem('ghalaUser');
-    if (savedUser) {
-        currentUser = JSON.parse(savedUser);
-        currentMerchantId = currentUser.merchant_id || 'm1'; // Default to m1 if not specified
-        showApp();
-    }
-}
-
-// Handle login
 async function handleLogin() {
     const username = usernameInput.value.trim();
     const password = passwordInput.value.trim();
@@ -915,7 +628,7 @@ async function handleLogin() {
         
         if (data.success) {
             currentUser = data.user;
-            currentMerchantId = currentUser.merchant_id || 'm1'; // Default to m1 if not specified
+            currentMerchantId = currentUser.merchant_id || 'm1';
             sessionStorage.setItem('ghalaUser', JSON.stringify(currentUser));
             showApp();
         } else {
@@ -927,7 +640,6 @@ async function handleLogin() {
     }
 }
 
-// Handle logout
 function handleLogout() {
     currentUser = null;
     currentMerchantId = null;
@@ -935,23 +647,19 @@ function handleLogout() {
     hideApp();
 }
 
-// Show the main app
 function showApp() {
     loginScreen.style.display = 'none';
     appContainer.style.display = 'block';
     currentUsernameDisplay.textContent = currentUser.username;
     
-    // Load initial data
     loadPaymentSettings();
     loadOrders();
     showSection('dashboard');
     
-    // Update active nav link
     navLinks.forEach(link => link.classList.remove('active'));
     document.querySelector('.nav-link[data-section="dashboard"]').classList.add('active');
 }
 
-// Hide the main app
 function hideApp() {
     loginScreen.style.display = 'block';
     appContainer.style.display = 'none';
@@ -959,35 +667,37 @@ function hideApp() {
     passwordInput.value = '';
 }
 
-// Show a specific section
 function showSection(section) {
-    dashboardSection.style.display = 'none';
-    paymentSettingsSection.style.display = 'none';
-    ordersSection.style.display = 'none';
+    document.querySelectorAll('.main-content > div').forEach(div => {
+        div.style.display = 'none';
+    });
     
-    switch (section) {
-        case 'dashboard':
-            dashboardSection.style.display = 'block';
-            break;
-        case 'payment-settings':
-            paymentSettingsSection.style.display = 'block';
-            break;
-        case 'orders':
-            ordersSection.style.display = 'block';
-            break;
-    }
+    document.getElementById(`${section}-section`).style.display = 'block';
 }
 
-// Update payment method configuration fields based on selection
 function updatePaymentMethodFields() {
     const method = paymentMethodSelect.value;
     methodConfigFields.innerHTML = '';
     
     if (!method) return;
     
+    const paymentMethodsConfig = {
+        mobile: {
+            required_fields: ["label", "provider", "phone_number"],
+            providers: ["MTN", "Airtel", "Zamtel"]
+        },
+        card: {
+            required_fields: ["label", "card_number", "expiry", "cvv"],
+            providers: ["Visa", "Mastercard", "American Express"]
+        },
+        bank: {
+            required_fields: ["label", "account_number", "bank_name", "branch_code"],
+            providers: ["ZANACO", "Stanbic", "Absa", "FNB"]
+        }
+    };
+    
     const config = paymentMethodsConfig[method];
     
-    // Create label field
     const labelGroup = document.createElement('div');
     labelGroup.className = 'mb-3';
     labelGroup.innerHTML = `
@@ -996,7 +706,6 @@ function updatePaymentMethodFields() {
     `;
     methodConfigFields.appendChild(labelGroup);
     
-    // Create provider field if applicable
     if (config.providers) {
         const providerGroup = document.createElement('div');
         providerGroup.className = 'mb-3';
@@ -1015,7 +724,6 @@ function updatePaymentMethodFields() {
         methodConfigFields.appendChild(providerGroup);
     }
     
-    // Create other required fields
     config.required_fields.forEach(field => {
         if (field !== 'label' && field !== 'provider') {
             const fieldGroup = document.createElement('div');
@@ -1033,7 +741,6 @@ function updatePaymentMethodFields() {
     });
 }
 
-// Save payment settings
 async function savePaymentSettings(e) {
     e.preventDefault();
     
@@ -1048,12 +755,16 @@ async function savePaymentSettings(e) {
         label: document.getElementById('payment-label').value
     };
     
-    // Add provider if applicable
+    const paymentMethodsConfig = {
+        mobile: { providers: ["MTN", "Airtel", "Zamtel"] },
+        card: { providers: ["Visa", "Mastercard", "American Express"] },
+        bank: { providers: ["ZANACO", "Stanbic", "Absa", "FNB"] }
+    };
+    
     if (paymentMethodsConfig[method].providers) {
         config.provider = document.getElementById('payment-provider').value;
     }
     
-    // Add other fields
     paymentMethodsConfig[method].required_fields.forEach(field => {
         if (field !== 'label' && field !== 'provider') {
             config[field] = document.getElementById(`payment-${field}`).value;
@@ -1083,7 +794,6 @@ async function savePaymentSettings(e) {
     }
 }
 
-// Load payment settings
 async function loadPaymentSettings() {
     try {
         const response = await fetch(`http://localhost:5000/merchant/${currentMerchantId}`);
@@ -1094,16 +804,20 @@ async function loadPaymentSettings() {
             settingsDisplay.style.display = 'block';
             settingsData.textContent = JSON.stringify(data, null, 2);
             
-            // Pre-fill the form with existing settings
             paymentMethodSelect.value = data.method;
             updatePaymentMethodFields();
             
-            // Set values for all fields
             document.getElementById('payment-label').value = data.label || '';
             
             if (data.provider) {
                 document.getElementById('payment-provider').value = data.provider;
             }
+            
+            const paymentMethodsConfig = {
+                mobile: { required_fields: ["label", "provider", "phone_number"] },
+                card: { required_fields: ["label", "card_number", "expiry", "cvv"] },
+                bank: { required_fields: ["label", "account_number", "bank_name", "branch_code"] }
+            };
             
             paymentMethodsConfig[data.method].required_fields.forEach(field => {
                 if (field !== 'label' && field !== 'provider' && data[field]) {
@@ -1119,7 +833,6 @@ async function loadPaymentSettings() {
     }
 }
 
-// Create test order
 async function createTestOrder() {
     const customerName = document.getElementById('customer-name').value.trim();
     const productName = document.getElementById('product-name').value.trim();
@@ -1146,7 +859,7 @@ async function createTestOrder() {
         const data = await response.json();
         
         if (data.success) {
-            createOrderModal.hide();
+            document.getElementById('createOrderModal').querySelector('.btn-close').click();
             loadOrders();
         } else {
             alert('Failed to create order');
@@ -1157,33 +870,32 @@ async function createTestOrder() {
     }
 }
 
-// Load orders
 async function loadOrders() {
     try {
         const response = await fetch(`http://localhost:5000/orders/${currentMerchantId}`);
         const orders = await response.json();
         
-        // Update orders table
         ordersTable.innerHTML = '';
         recentOrdersTable.innerHTML = '';
         
         let totalOrders = 0;
         let paidOrders = 0;
         let failedOrders = 0;
+        let totalRevenue = 0;
         
-        // Sort orders by timestamp (newest first)
         orders.sort((a, b) => b.timestamp - a.timestamp);
         
         orders.forEach(order => {
             totalOrders++;
-            if (order.status === 'paid') paidOrders++;
+            if (order.status === 'paid') {
+                paidOrders++;
+                totalRevenue += order.total;
+            }
             if (order.status === 'failed') failedOrders++;
             
-            // Format date
             const date = new Date(order.timestamp * 1000);
             const dateStr = date.toLocaleString();
             
-            // Add to main orders table
             const row = document.createElement('tr');
             row.className = 'order-card';
             row.innerHTML = `
@@ -1195,14 +907,13 @@ async function loadOrders() {
                 <td>${dateStr}</td>
                 <td>
                     ${order.status === 'pending' ? 
-                        `<button class="btn btn-sm btn-outline-primary simulate-payment" data-order-id="${order.id}">
-                            Simulate Payment
+                        `<button class="btn btn-sm btn-outline-primary simulate-payment" data-order-id="${order.id}" data-bs-toggle="tooltip" title="Simulate payment processing">
+                            <i class="bi bi-credit-card"></i>
                         </button>` : ''}
                 </td>
             `;
             ordersTable.appendChild(row);
             
-            // Add to recent orders table (only first 5)
             if (recentOrdersTable.children.length < 5) {
                 const recentRow = document.createElement('tr');
                 recentRow.innerHTML = `
@@ -1216,24 +927,25 @@ async function loadOrders() {
             }
         });
         
-        // Update dashboard counters
         totalOrdersDisplay.textContent = totalOrders;
         paidOrdersDisplay.textContent = paidOrders;
         failedOrdersDisplay.textContent = failedOrders;
         
-        // Add event listeners to simulate payment buttons
+        document.getElementById('total-revenue').textContent = `$${totalRevenue.toFixed(2)}`;
+        
         document.querySelectorAll('.simulate-payment').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const orderId = e.target.getAttribute('data-order-id');
+                const orderId = e.target.closest('button').getAttribute('data-order-id');
                 simulatePayment(orderId);
             });
         });
+        
+        initCharts();
     } catch (error) {
         console.error('Error loading orders:', error);
     }
 }
 
-// Simulate payment for an order
 async function simulatePayment(orderId) {
     try {
         const response = await fetch(`http://localhost:5000/simulate-payment/${currentMerchantId}/${orderId}`, {
@@ -1244,7 +956,6 @@ async function simulatePayment(orderId) {
         
         if (data.success) {
             alert('Payment simulation started. Status will update in a few seconds.');
-            // Refresh after 6 seconds to see the update
             setTimeout(loadOrders, 6000);
         } else {
             alert(data.message || 'Failed to simulate payment');
@@ -1254,185 +965,3 @@ async function simulatePayment(orderId) {
         alert('An error occurred while simulating payment');
     }
 }
-
-// Initialize the app when the page loads
-document.addEventListener('DOMContentLoaded', init);
-
-//  let currentUser = null;
-//         let currentMerchantId = null;
-//         let ordersChart, paymentMethodsChart, revenueChart, statusDistributionChart, dailyPerformanceChart;
-        
-        // Initialize the app when the page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            init();
-            updateDateTime();
-            setInterval(updateDateTime, 60000); // Update time every minute
-            
-            // Initialize charts with empty data
-            initCharts();
-        });
-        
-        function updateDateTime() {
-            const now = new Date();
-            document.getElementById('dashboard-time').textContent = now.toLocaleString('en-US', {
-                weekday: 'long',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            document.getElementById('current-date').textContent = now.toLocaleDateString();
-        }
-        
-        function initCharts() {
-            const ctx1 = document.getElementById('ordersChart').getContext('2d');
-            ordersChart = new Chart(ctx1, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Orders',
-                        data: [],
-                        backgroundColor: 'rgba(102, 126, 234, 0.2)',
-                        borderColor: 'rgba(102, 126, 234, 1)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-            
-            const ctx2 = document.getElementById('paymentMethodsChart').getContext('2d');
-            paymentMethodsChart = new Chart(ctx2, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Mobile', 'Card', 'Bank'],
-                    datasets: [{
-                        data: [30, 45, 25],
-                        backgroundColor: [
-                            'rgba(67, 233, 123, 0.7)',
-                            'rgba(102, 126, 234, 0.7)',
-                            'rgba(255, 193, 7, 0.7)'
-                        ],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }
-            });
-            
-            const ctx3 = document.getElementById('revenueChart').getContext('2d');
-            revenueChart = new Chart(ctx3, {
-                type: 'bar',
-                data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                    datasets: [{
-                        label: 'Revenue ($)',
-                        data: [1200, 1900, 1500, 2000, 1800, 2200],
-                        backgroundColor: 'rgba(102, 126, 234, 0.7)'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-            
-            const ctx4 = document.getElementById('statusDistributionChart').getContext('2d');
-            statusDistributionChart = new Chart(ctx4, {
-                type: 'pie',
-                data: {
-                    labels: ['Paid', 'Pending', 'Failed'],
-                    datasets: [{
-                        data: [65, 15, 20],
-                        backgroundColor: [
-                            'rgba(67, 233, 123, 0.7)',
-                            'rgba(255, 193, 7, 0.7)',
-                            'rgba(255, 117, 140, 0.7)'
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }
-            });
-            
-            const ctx5 = document.getElementById('dailyPerformanceChart').getContext('2d');
-            dailyPerformanceChart = new Chart(ctx5, {
-                type: 'line',
-                data: {
-                    labels: Array.from({length: 30}, (_, i) => `Day ${i+1}`),
-                    datasets: [{
-                        label: 'Orders',
-                        data: Array.from({length: 30}, () => Math.floor(Math.random() * 20) + 5),
-                        borderColor: 'rgba(102, 126, 234, 1)',
-                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        fill: true
-                    }, {
-                        label: 'Revenue',
-                        data: Array.from({length: 30}, () => Math.floor(Math.random() * 500) + 100),
-                        borderColor: 'rgba(67, 233, 123, 1)',
-                        backgroundColor: 'rgba(67, 233, 123, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-        }
-          document.getElementById('sidebarToggle').addEventListener('click', function() {
-            document.getElementById('sidebar').classList.toggle('active');
-        });
-        
-        // Help FAB
-        document.getElementById('help-fab').addEventListener('click', function() {
-            new bootstrap.Modal(document.getElementById('helpModal')).show();
-        });
-        

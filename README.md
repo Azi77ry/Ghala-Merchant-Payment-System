@@ -71,19 +71,7 @@ python app.py
 
 ---
 
-## 📁 Project Structure
 
-```
-ghala-system/
-├── backend/
-│   ├── app.py
-│   
-│ 
-├── frontend/
-│   ├── index.html
-│   
-└── README.md
-```
 
 ---
 

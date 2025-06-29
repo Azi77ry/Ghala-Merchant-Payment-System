@@ -1,0 +1,344 @@
+{
+  "merchants": {
+    "m1": {
+      "id": "m1",
+      "method": "mobile",
+      "label": "My Mobile Money",
+      "provider": "MTN",
+      "phone_number": "0977123456",
+      "card_number": null,
+      "expiry": null,
+      "cvv": null,
+      "account_number": null,
+      "bank_name": null,
+      "branch_code": null,
+      "commission_rate": 2.5,
+      "created_at": 1751207741.204677,
+      "updated_at": 1751207741.204677
+    },
+    "m2": {
+      "id": "m2",
+      "method": "card",
+      "label": "Business Visa Card",
+      "provider": null,
+      "phone_number": null,
+      "card_number": "4111111111111111",
+      "expiry": "12/25",
+      "cvv": "123",
+      "account_number": null,
+      "bank_name": null,
+      "branch_code": null,
+      "commission_rate": 3.0,
+      "created_at": 1751207741.204677,
+      "updated_at": 1751207741.204677
+    }
+  },
+  "orders": {
+    "m1": {
+      "order1": {
+        "id": "order1",
+        "merchant_id": "m1",
+        "customer_name": "Customer 1",
+        "product": "Product 1",
+        "total": 114.64,
+        "status": "paid",
+        "timestamp": 1748702141.208673,
+        "payment_method": "mobile",
+        "commission": 2.87,
+        "payment_processed_at": 1751210092.1940682
+      },
+      "order3": {
+        "id": "order3",
+        "merchant_id": "m1",
+        "customer_name": "Customer 3",
+        "product": "Product 3",
+        "total": 157.48,
+        "status": "paid",
+        "timestamp": 1748874941.208673,
+        "payment_method": "mobile",
+        "commission": 3.94,
+        "payment_processed_at": 1748874941.208673
+      },
+      "order5": {
+        "id": "order5",
+        "merchant_id": "m1",
+        "customer_name": "Customer 5",
+        "product": "Product 5",
+        "total": 111.45,
+        "status": "paid",
+        "timestamp": 1749047741.208673,
+        "payment_method": "mobile",
+        "commission": 2.79,
+        "payment_processed_at": 1749047741.208673
+      },
+      "order7": {
+        "id": "order7",
+        "merchant_id": "m1",
+        "customer_name": "Customer 7",
+        "product": "Product 7",
+        "total": 199.07,
+        "status": "failed",
+        "timestamp": 1749220541.208673,
+        "payment_method": "mobile",
+        "commission": 4.98,
+        "payment_processed_at": 1749220541.208673
+      },
+      "order9": {
+        "id": "order9",
+        "merchant_id": "m1",
+        "customer_name": "Customer 9",
+        "product": "Product 9",
+        "total": 168.11,
+        "status": "paid",
+        "timestamp": 1749393341.208673,
+        "payment_method": "mobile",
+        "commission": 4.2,
+        "payment_processed_at": 1749393341.208673
+      },
+      "order11": {
+        "id": "order11",
+        "merchant_id": "m1",
+        "customer_name": "Customer 11",
+        "product": "Product 11",
+        "total": 167.86,
+        "status": "failed",
+        "timestamp": 1749566141.209674,
+        "payment_method": "mobile",
+        "commission": 4.2,
+        "payment_processed_at": 1749566141.209674
+      },
+      "order13": {
+        "id": "order13",
+        "merchant_id": "m1",
+        "customer_name": "Customer 13",
+        "product": "Product 13",
+        "total": 166.81,
+        "status": "paid",
+        "timestamp": 1749738941.209674,
+        "payment_method": "mobile",
+        "commission": 4.17,
+        "payment_processed_at": 1749738941.209674
+      },
+      "order15": {
+        "id": "order15",
+        "merchant_id": "m1",
+        "customer_name": "Customer 15",
+        "product": "Product 15",
+        "total": 154.18,
+        "status": "paid",
+        "timestamp": 1749911741.209674,
+        "payment_method": "mobile",
+        "commission": 3.85,
+        "payment_processed_at": 1749911741.209674
+      },
+      "order17": {
+        "id": "order17",
+        "merchant_id": "m1",
+        "customer_name": "Customer 17",
+        "product": "Product 17",
+        "total": 153.49,
+        "status": "paid",
+        "timestamp": 1750084541.209674,
+        "payment_method": "mobile",
+        "commission": 3.84,
+        "payment_processed_at": 1750084541.209674
+      },
+      "order19": {
+        "id": "order19",
+        "merchant_id": "m1",
+        "customer_name": "Customer 19",
+        "product": "Product 19",
+        "total": 114.87,
+        "status": "paid",
+        "timestamp": 1750257341.209674,
+        "payment_method": "mobile",
+        "commission": 2.87,
+        "payment_processed_at": 1750257341.209674
+      },
+      "b144fa1b-860a-42f1-a4ff-e15ce5855235": {
+        "id": "b144fa1b-860a-42f1-a4ff-e15ce5855235",
+        "merchant_id": "m1",
+        "customer_name": "azizi",
+        "product": "ndizi",
+        "total": 500000,
+        "status": "paid",
+        "timestamp": 1751209823.6351662,
+        "payment_method": "mobile",
+        "commission": 12500.0,
+        "payment_processed_at": 1751209845.8704247
+      },
+      "f94e76e6-6a64-4021-9239-129a62fb0c1c": {
+        "id": "f94e76e6-6a64-4021-9239-129a62fb0c1c",
+        "merchant_id": "m1",
+        "customer_name": "azizi",
+        "product": "kuku",
+        "total": -500000,
+        "status": "failed",
+        "timestamp": 1751209973.664202,
+        "payment_method": "mobile",
+        "commission": -12500.0,
+        "payment_processed_at": null
+      },
+      "6a31a098-5295-4818-aaa2-7a543628e9a6": {
+        "id": "6a31a098-5295-4818-aaa2-7a543628e9a6",
+        "merchant_id": "m1",
+        "customer_name": "aziiz",
+        "product": "kuku",
+        "total": 70000,
+        "status": "paid",
+        "timestamp": 1751210057.5300183,
+        "payment_method": "mobile",
+        "commission": 1750.0,
+        "payment_processed_at": 1751210067.7964644
+      }
+    },
+    "m2": {
+      "order2": {
+        "id": "order2",
+        "merchant_id": "m2",
+        "customer_name": "Customer 2",
+        "product": "Product 2",
+        "total": 116.68,
+        "status": "paid",
+        "timestamp": 1748788541.208673,
+        "payment_method": "card",
+        "commission": 3.5,
+        "payment_processed_at": 1748788541.208673
+      },
+      "order4": {
+        "id": "order4",
+        "merchant_id": "m2",
+        "customer_name": "Customer 4",
+        "product": "Product 4",
+        "total": 140.35,
+        "status": "paid",
+        "timestamp": 1748961341.208673,
+        "payment_method": "card",
+        "commission": 4.21,
+        "payment_processed_at": 1748961341.208673
+      },
+      "order6": {
+        "id": "order6",
+        "merchant_id": "m2",
+        "customer_name": "Customer 6",
+        "product": "Product 6",
+        "total": 168.46,
+        "status": "paid",
+        "timestamp": 1749134141.208673,
+        "payment_method": "card",
+        "commission": 5.05,
+        "payment_processed_at": 1749134141.208673
+      },
+      "order8": {
+        "id": "order8",
+        "merchant_id": "m2",
+        "customer_name": "Customer 8",
+        "product": "Product 8",
+        "total": 171.46,
+        "status": "paid",
+        "timestamp": 1749306941.208673,
+        "payment_method": "card",
+        "commission": 5.14,
+        "payment_processed_at": 1749306941.208673
+      },
+      "order10": {
+        "id": "order10",
+        "merchant_id": "m2",
+        "customer_name": "Customer 10",
+        "product": "Product 10",
+        "total": 159.65,
+        "status": "paid",
+        "timestamp": 1749479741.208673,
+        "payment_method": "card",
+        "commission": 4.79,
+        "payment_processed_at": 1749479741.208673
+      },
+      "order12": {
+        "id": "order12",
+        "merchant_id": "m2",
+        "customer_name": "Customer 12",
+        "product": "Product 12",
+        "total": 120.87,
+        "status": "paid",
+        "timestamp": 1749652541.209674,
+        "payment_method": "card",
+        "commission": 3.63,
+        "payment_processed_at": 1749652541.209674
+      },
+      "order14": {
+        "id": "order14",
+        "merchant_id": "m2",
+        "customer_name": "Customer 14",
+        "product": "Product 14",
+        "total": 180.55,
+        "status": "failed",
+        "timestamp": 1749825341.209674,
+        "payment_method": "card",
+        "commission": 5.42,
+        "payment_processed_at": 1749825341.209674
+      },
+      "order16": {
+        "id": "order16",
+        "merchant_id": "m2",
+        "customer_name": "Customer 16",
+        "product": "Product 16",
+        "total": 196.17,
+        "status": "paid",
+        "timestamp": 1749998141.209674,
+        "payment_method": "card",
+        "commission": 5.89,
+        "payment_processed_at": 1749998141.209674
+      },
+      "order18": {
+        "id": "order18",
+        "merchant_id": "m2",
+        "customer_name": "Customer 18",
+        "product": "Product 18",
+        "total": 159.37,
+        "status": "paid",
+        "timestamp": 1750170941.209674,
+        "payment_method": "card",
+        "commission": 4.78,
+        "payment_processed_at": 1750170941.209674
+      },
+      "order20": {
+        "id": "order20",
+        "merchant_id": "m2",
+        "customer_name": "Customer 20",
+        "product": "Product 20",
+        "total": 130.77,
+        "status": "pending",
+        "timestamp": 1750343741.209674,
+        "payment_method": "card",
+        "commission": 3.92,
+        "payment_processed_at": null
+      }
+    }
+  },
+  "users": {
+    "admin": {
+      "username": "admin",
+      "password": "admin123",
+      "role": "admin",
+      "name": "Admin User",
+      "email": "admin@ghala.com",
+      "merchant_id": null
+    },
+    "merchant1": {
+      "username": "merchant1",
+      "password": "merchant123",
+      "role": "merchant",
+      "name": "Merchant One",
+      "email": "merchant1@business.com",
+      "merchant_id": "m1"
+    },
+    "merchant2": {
+      "username": "merchant2",
+      "password": "merchant123",
+      "role": "merchant",
+      "name": "Merchant Two",
+      "email": "merchant2@business.com",
+      "merchant_id": "m2"
+    }
+  }
+}
