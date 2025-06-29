@@ -178,18 +178,6 @@
         "payment_method": "mobile",
         "commission": 50.0,
         "payment_processed_at": 1751213109.3605828
-      },
-      "2e04d9f0-31c8-4df4-a6ee-6724a47fcc40": {
-        "id": "2e04d9f0-31c8-4df4-a6ee-6724a47fcc40",
-        "merchant_id": "m1",
-        "customer_name": "Test Customer",
-        "product": "cdvc",
-        "total": 100,
-        "status": "paid",
-        "timestamp": 1751213448.5997982,
-        "payment_method": "card",
-        "commission": 2.5,
-        "payment_processed_at": 1751213509.5079284
       }
     },
     "m2": {
