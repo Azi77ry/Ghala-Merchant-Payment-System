@@ -750,26 +750,30 @@ async function savePaymentSettings(e) {
         return;
     }
     
+    // Get all configuration values
     const config = {
         method: method,
         label: document.getElementById('payment-label').value
     };
     
-    const paymentMethodsConfig = {
-        mobile: { providers: ["MTN", "Airtel", "Zamtel"] },
-        card: { providers: ["Visa", "Mastercard", "American Express"] },
-        bank: { providers: ["ZANACO", "Stanbic", "Absa", "FNB"] }
-    };
-    
-    if (paymentMethodsConfig[method].providers) {
-        config.provider = document.getElementById('payment-provider').value;
+    // Add provider if applicable
+    const providerSelect = document.getElementById('payment-provider');
+    if (providerSelect) {
+        config.provider = providerSelect.value;
     }
     
-    paymentMethodsConfig[method].required_fields.forEach(field => {
-        if (field !== 'label' && field !== 'provider') {
-            config[field] = document.getElementById(`payment-${field}`).value;
-        }
-    });
+    // Add other fields based on payment method
+    if (method === 'mobile') {
+        config.phone_number = document.getElementById('payment-phone_number').value;
+    } else if (method === 'card') {
+        config.card_number = document.getElementById('payment-card_number').value;
+        config.expiry = document.getElementById('payment-expiry').value;
+        config.cvv = document.getElementById('payment-cvv').value;
+    } else if (method === 'bank') {
+        config.account_number = document.getElementById('payment-account_number').value;
+        config.bank_name = document.getElementById('payment-bank_name').value;
+        config.branch_code = document.getElementById('payment-branch_code').value;
+    }
     
     try {
         const response = await fetch(`http://localhost:5000/merchant/${currentMerchantId}`, {
@@ -784,52 +788,79 @@ async function savePaymentSettings(e) {
         
         if (data.success) {
             alert('Payment settings saved successfully');
-            loadPaymentSettings();
+            // Force reload of settings
+            await loadPaymentSettings();
+            // Update charts if needed
+            initCharts();
         } else {
-            alert('Failed to save payment settings');
+            alert('Failed to save payment settings: ' + (data.message || 'Unknown error'));
         }
     } catch (error) {
         console.error('Error saving payment settings:', error);
-        alert('An error occurred while saving payment settings');
+        alert('An error occurred while saving payment settings. Check console for details.');
     }
 }
 
 async function loadPaymentSettings() {
     try {
         const response = await fetch(`http://localhost:5000/merchant/${currentMerchantId}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
         
         if (data.method) {
             noSettingsMessage.style.display = 'none';
             settingsDisplay.style.display = 'block';
-            settingsData.textContent = JSON.stringify(data, null, 2);
             
+            // Format the settings for display
+            const displayData = {...data};
+            // Hide sensitive information
+            if (displayData.card_number) {
+                displayData.card_number = '•••• •••• •••• ' + displayData.card_number.slice(-4);
+            }
+            if (displayData.cvv) {
+                displayData.cvv = '•••';
+            }
+            
+            settingsData.textContent = JSON.stringify(displayData, null, 2);
+            
+            // Update form fields
             paymentMethodSelect.value = data.method;
             updatePaymentMethodFields();
             
-            document.getElementById('payment-label').value = data.label || '';
-            
-            if (data.provider) {
-                document.getElementById('payment-provider').value = data.provider;
-            }
-            
-            const paymentMethodsConfig = {
-                mobile: { required_fields: ["label", "provider", "phone_number"] },
-                card: { required_fields: ["label", "card_number", "expiry", "cvv"] },
-                bank: { required_fields: ["label", "account_number", "bank_name", "branch_code"] }
-            };
-            
-            paymentMethodsConfig[data.method].required_fields.forEach(field => {
-                if (field !== 'label' && field !== 'provider' && data[field]) {
-                    document.getElementById(`payment-${field}`).value = data[field];
+            // Small delay to ensure fields are rendered
+            setTimeout(() => {
+                document.getElementById('payment-label').value = data.label || '';
+                
+                if (data.provider) {
+                    const providerSelect = document.getElementById('payment-provider');
+                    if (providerSelect) {
+                        providerSelect.value = data.provider;
+                    }
                 }
-            });
+                
+                // Set other field values based on payment method
+                if (data.method === 'mobile' && data.phone_number) {
+                    document.getElementById('payment-phone_number').value = data.phone_number;
+                } else if (data.method === 'card') {
+                    if (data.card_number) document.getElementById('payment-card_number').value = data.card_number;
+                    if (data.expiry) document.getElementById('payment-expiry').value = data.expiry;
+                    if (data.cvv) document.getElementById('payment-cvv').value = data.cvv;
+                } else if (data.method === 'bank') {
+                    if (data.account_number) document.getElementById('payment-account_number').value = data.account_number;
+                    if (data.bank_name) document.getElementById('payment-bank_name').value = data.bank_name;
+                    if (data.branch_code) document.getElementById('payment-branch_code').value = data.branch_code;
+                }
+            }, 100);
         } else {
             noSettingsMessage.style.display = 'block';
             settingsDisplay.style.display = 'none';
         }
     } catch (error) {
         console.error('Error loading payment settings:', error);
+        alert('Failed to load payment settings. Check console for details.');
     }
 }
 
