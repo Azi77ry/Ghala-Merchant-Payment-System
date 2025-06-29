@@ -119,18 +119,6 @@
         "commission": 3.85,
         "payment_processed_at": 1749911741.209674
       },
-      "order17": {
-        "id": "order17",
-        "merchant_id": "m1",
-        "customer_name": "Customer 17",
-        "product": "Product 17",
-        "total": 153.49,
-        "status": "paid",
-        "timestamp": 1750084541.209674,
-        "payment_method": "mobile",
-        "commission": 3.84,
-        "payment_processed_at": 1750084541.209674
-      },
       "order19": {
         "id": "order19",
         "merchant_id": "m1",
