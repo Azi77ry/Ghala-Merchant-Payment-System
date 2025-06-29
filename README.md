@@ -1,34 +1,3 @@
-
-# 📝 Summary – Ghala Merchant Payment System (Simulation)
-
-This project is a **full-stack simulation system** built for the **Ghala Technical Intern Challenge**. It models how Ghala enables merchants to configure payment options and handle customer orders in a WhatsApp commerce-like environment.
-
-## 🔧 What It Does
-
-- **Merchant Login:** Allows merchants to sign in and manage their own payment settings.
-- **Payment Method Setup:** Merchants can configure payment options such as:
-  - Mobile money 
-  - Bank accounts 
-  - Cards 
-- **Order Management:** Merchants can create, view, and simulate payments for customer orders.
-- **Analytics Dashboard:** Real-time charts showing:
-  - Orders and revenue over time
-  - Payment method usage (doughnut chart)
-  - Order status distribution (paid, pending, failed)
-- **Dark/Light Mode Toggle** for improved UX
-
-## 🧰 Technologies Used
-
-- **Frontend:** HTML, CSS (Bootstrap), JavaScript, Chart.js
-- **Backend:** Python (Flask), Flask-CORS
-- **Data Persistence:** JSON file (`merchant_data.json`) as a mock database
-
-## 🧪 Testing Scenario
-
-A merchant logs in, sets up a preferred payment method, creates a test order, simulates the payment, and views real-time analytics on the dashboard.
-
----
-
 # 📦 Ghala Merchant Payment System – Core Simulation
 
 This is a simulation system built for the **Ghala Technical Intern Challenge**. It demonstrates how merchants configure payment methods and handle customer orders with payment tracking and real-time analytics.
@@ -93,9 +62,9 @@ Open `index.html` directly in your browser:
 
 | Username    | Password     | Role     |
 |-------------|--------------|----------|
-| merchant1   | merchant123  | Merchant (m1) |
-| merchant2   | merchant123  | Merchant (m2) |
-| admin       | admin123     | Admin     |
+| admin       | admin123     | admin    |
+| merchant2   | merchant123  | Merchant(m2)|
+
 
 ## 📊 Analytics Preview
 
