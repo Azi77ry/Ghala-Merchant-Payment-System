@@ -996,3 +996,199 @@ async function simulatePayment(orderId) {
         alert('An error occurred while simulating payment');
     }
 }
+
+// Add to your existing functions in app.js
+
+async function editOrder(orderId) {
+    try {
+        // Get the order details
+        const response = await fetch(`http://localhost:5000/order/${currentMerchantId}/${orderId}`);
+        const order = await response.json();
+        
+        // Populate the edit modal
+        document.getElementById('edit-order-id').value = order.id;
+        document.getElementById('edit-customer-name').value = order.customer_name;
+        document.getElementById('edit-product-name').value = order.product;
+        document.getElementById('edit-order-amount').value = order.total;
+        document.getElementById('edit-order-status').value = order.status;
+        
+        // Show the modal
+        const editModal = new bootstrap.Modal(document.getElementById('editOrderModal'));
+        editModal.show();
+    } catch (error) {
+        console.error('Error loading order for edit:', error);
+        alert('Failed to load order details for editing');
+    }
+}
+
+async function saveEditedOrder() {
+    const orderId = document.getElementById('edit-order-id').value;
+    const customerName = document.getElementById('edit-customer-name').value.trim();
+    const productName = document.getElementById('edit-product-name').value.trim();
+    const amount = document.getElementById('edit-order-amount').value.trim();
+    const status = document.getElementById('edit-order-status').value;
+    
+    if (!customerName || !productName || !amount) {
+        alert('Please fill all required fields');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`http://localhost:5000/order/${currentMerchantId}/${orderId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                customer_name: customerName,
+                product: productName,
+                total: parseFloat(amount),
+                status: status
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Close the modal
+            bootstrap.Modal.getInstance(document.getElementById('editOrderModal')).hide();
+            // Refresh the orders list
+            await loadOrders();
+        } else {
+            alert('Failed to update order: ' + (data.message || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error updating order:', error);
+        alert('An error occurred while updating the order');
+    }
+}
+
+async function deleteOrder(orderId) {
+    if (!confirm('Are you sure you want to delete this order? This action cannot be undone.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`http://localhost:5000/order/${currentMerchantId}/${orderId}`, {
+            method: 'DELETE'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Refresh the orders list
+            await loadOrders();
+        } else {
+            alert('Failed to delete order: ' + (data.message || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error deleting order:', error);
+        alert('An error occurred while deleting the order');
+    }
+}
+
+// Update the loadOrders function to include edit/delete buttons
+async function loadOrders() {
+    try {
+        const response = await fetch(`http://localhost:5000/orders/${currentMerchantId}`);
+        const orders = await response.json();
+        
+        ordersTable.innerHTML = '';
+        recentOrdersTable.innerHTML = '';
+        
+        let totalOrders = 0;
+        let paidOrders = 0;
+        let failedOrders = 0;
+        let totalRevenue = 0;
+        
+        orders.sort((a, b) => b.timestamp - a.timestamp);
+        
+        orders.forEach(order => {
+            totalOrders++;
+            if (order.status === 'paid') {
+                paidOrders++;
+                totalRevenue += order.total;
+            }
+            if (order.status === 'failed') failedOrders++;
+            
+            const date = new Date(order.timestamp * 1000);
+            const dateStr = date.toLocaleString();
+            
+            const row = document.createElement('tr');
+            row.className = 'order-card';
+            row.innerHTML = `
+                <td>${order.id.substring(0, 8)}...</td>
+                <td>${order.customer_name}</td>
+                <td>${order.product}</td>
+                <td>$${order.total.toFixed(2)}</td>
+                <td><span class="status-badge status-${order.status}">${order.status}</span></td>
+                <td>${dateStr}</td>
+                <td class="text-nowrap">
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-primary edit-order" data-order-id="${order.id}" data-bs-toggle="tooltip" title="Edit order">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger delete-order" data-order-id="${order.id}" data-bs-toggle="tooltip" title="Delete order">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                        ${order.status === 'pending' ? 
+                            `<button class="btn btn-sm btn-outline-success simulate-payment" data-order-id="${order.id}" data-bs-toggle="tooltip" title="Simulate payment">
+                                <i class="bi bi-credit-card"></i>
+                            </button>` : ''}
+                    </div>
+                </td>
+            `;
+            ordersTable.appendChild(row);
+            
+            if (recentOrdersTable.children.length < 5) {
+                const recentRow = document.createElement('tr');
+                recentRow.innerHTML = `
+                    <td>${order.id.substring(0, 8)}...</td>
+                    <td>${order.product}</td>
+                    <td>$${order.total.toFixed(2)}</td>
+                    <td><span class="status-badge status-${order.status}">${order.status}</span></td>
+                    <td>${dateStr}</td>
+                `;
+                recentOrdersTable.appendChild(recentRow);
+            }
+        });
+        
+        totalOrdersDisplay.textContent = totalOrders;
+        paidOrdersDisplay.textContent = paidOrders;
+        failedOrdersDisplay.textContent = failedOrders;
+        
+        document.getElementById('total-revenue').textContent = `$${totalRevenue.toFixed(2)}`;
+        
+        // Add event listeners to action buttons
+        document.querySelectorAll('.edit-order').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const orderId = e.target.closest('button').getAttribute('data-order-id');
+                editOrder(orderId);
+            });
+        });
+        
+        document.querySelectorAll('.delete-order').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const orderId = e.target.closest('button').getAttribute('data-order-id');
+                deleteOrder(orderId);
+            });
+        });
+        
+        document.querySelectorAll('.simulate-payment').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const orderId = e.target.closest('button').getAttribute('data-order-id');
+                simulatePayment(orderId);
+            });
+        });
+        
+        // Initialize tooltips for the new buttons
+        initTooltips();
+        
+    } catch (error) {
+        console.error('Error loading orders:', error);
+        alert('Failed to load orders. Check console for details.');
+    }
+}
+
+// Add event listener for the save edit button
+document.getElementById('confirm-edit-order').addEventListener('click', saveEditedOrder);

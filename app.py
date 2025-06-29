@@ -404,6 +404,47 @@ def get_status_distribution(merchant_id):
             statuses[key] = round((statuses[key] / total) * 100, 1)
     
     return jsonify(statuses)
+# Add to your existing endpoints in app.py
+
+@app.route('/order/<merchant_id>/<order_id>', methods=['GET', 'PUT', 'DELETE'])
+def order_detail(merchant_id, order_id):
+    if merchant_id not in db.orders or order_id not in db.orders[merchant_id]:
+        return jsonify({"success": False, "message": "Order not found"}), 404
+    
+    order = db.orders[merchant_id][order_id]
+    
+    if request.method == 'GET':
+        return jsonify(asdict(order))
+    
+    elif request.method == 'PUT':
+        data = request.get_json()
+        
+        # Update order fields
+        if 'customer_name' in data:
+            order.customer_name = data['customer_name']
+        if 'product' in data:
+            order.product = data['product']
+        if 'total' in data:
+            order.total = float(data['total'])
+        if 'status' in data:
+            order.status = data['status']
+            if data['status'] == 'paid' and order.status != 'paid':
+                order.payment_processed_at = time.time()
+        
+        db.save_data()
+        return jsonify({
+            "success": True,
+            "message": "Order updated",
+            "order": asdict(order)
+        })
+    
+    elif request.method == 'DELETE':
+        del db.orders[merchant_id][order_id]
+        db.save_data()
+        return jsonify({
+            "success": True,
+            "message": "Order deleted"
+        })
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
