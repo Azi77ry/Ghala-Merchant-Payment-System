@@ -256,13 +256,30 @@ def merchant_settings(merchant_id):
         merchant = db.merchants.get(merchant_id)
         if merchant:
             return jsonify(asdict(merchant))
-        else:
-            return jsonify({"method": None})
+        return jsonify({"method": None})
     
     elif request.method == 'POST':
         data = request.get_json()
         
-        # Update existing or create new merchant
+        # Validate required fields based on payment method
+        method = data.get('method')
+        if not method:
+            return jsonify({"success": False, "message": "Payment method is required"}), 400
+            
+        required_fields = {
+            'mobile': ['label', 'provider', 'phone_number'],
+            'card': ['label', 'card_number', 'expiry', 'cvv'],
+            'bank': ['label', 'account_number', 'bank_name', 'branch_code']
+        }.get(method, [])
+        
+        missing_fields = [field for field in required_fields if field not in data]
+        if missing_fields:
+            return jsonify({
+                "success": False,
+                "message": f"Missing required fields: {', '.join(missing_fields)}"
+            }), 400
+        
+        # Update or create merchant
         if merchant_id in db.merchants:
             merchant = db.merchants[merchant_id]
             for key, value in data.items():
@@ -270,12 +287,16 @@ def merchant_settings(merchant_id):
             merchant.updated_at = time.time()
         else:
             data['id'] = merchant_id
-            data['commission_rate'] = COMMISSION_RATES.get(data['method'], 2.5)
+            data['commission_rate'] = COMMISSION_RATES.get(method, 2.5)
             merchant = Merchant(**data)
             db.merchants[merchant_id] = merchant
         
         db.save_data()
-        return jsonify({"success": True, "message": "Settings saved"})
+        return jsonify({
+            "success": True,
+            "message": "Settings saved",
+            "merchant": asdict(merchant)
+        })
 
 @app.route('/orders/<merchant_id>', methods=['GET'])
 def get_orders(merchant_id):

@@ -14,7 +14,7 @@
       "branch_code": null,
       "commission_rate": 2.5,
       "created_at": 1751207741.204677,
-      "updated_at": 1751207741.204677
+      "updated_at": 1751213348.0619085
     },
     "m2": {
       "id": "m2",
@@ -190,6 +190,18 @@
         "payment_method": "mobile",
         "commission": 1750.0,
         "payment_processed_at": 1751210067.7964644
+      },
+      "3f033b6f-b2f9-4445-a491-f7284f9bafc4": {
+        "id": "3f033b6f-b2f9-4445-a491-f7284f9bafc4",
+        "merchant_id": "m1",
+        "customer_name": "Test Customer",
+        "product": "Test Product",
+        "total": 2000,
+        "status": "paid",
+        "timestamp": 1751213074.8080535,
+        "payment_method": "mobile",
+        "commission": 50.0,
+        "payment_processed_at": 1751213109.3605828
       }
     },
     "m2": {
