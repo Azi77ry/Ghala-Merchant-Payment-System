@@ -46,7 +46,11 @@ cd ghala-merchant-system
 ```
 
 ### 2. Start the Backend
+### Install python library 
 pip install flask flask-cors
+
+after installing required library run the command below to start backend app.py
+
 python app.py
 ```
 
@@ -59,6 +63,7 @@ Open `index.html` directly in your browser:
 ```
 
 ## 👤 Sample Users
+then login details you can select admin as username and password as admin123
 
 | Username    | Password     | Role     |
 |-------------|--------------|----------|
