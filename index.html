@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ghala Merchant system</title>
-     <!-- Favicon links -->
+    <!-- Favicon links -->
     <link rel="icon" href="ghala-logo.svg" type="image/x-icon">
     <link rel="shortcut icon" href="ghala-logo.svg" type="image/x-icon">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -70,7 +70,7 @@
             <div class="sidebar-brand">
                 <img src="ghala-logo.svg" alt="Ghala Logo">
                 <h5 class="mb-0">Ghala Merchant</h5>
-               <small class="green-text">Business Portal</small>
+                <small class="green-text">Business Portal</small>
             </div>
             <ul class="nav flex-column">
                 <li class="nav-item">
@@ -550,57 +550,122 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Edit Order Modal -->
-<div class="modal fade" id="editOrderModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="bi bi-pencil-square me-2"></i>Edit Order
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="edit-order-form">
-                    <input type="hidden" id="edit-order-id">
-                    <div class="mb-3">
-                        <label for="edit-customer-name" class="form-label">Customer Name</label>
-                        <input type="text" class="form-control" id="edit-customer-name" required>
+        <!-- Edit Order Modal -->
+        <div class="modal fade" id="editOrderModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="bi bi-pencil-square me-2"></i>Edit Order
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="mb-3">
-                        <label for="edit-product-name" class="form-label">Product</label>
-                        <input type="text" class="form-control" id="edit-product-name" required>
+                    <div class="modal-body">
+                        <form id="edit-order-form">
+                            <input type="hidden" id="edit-order-id">
+                            <div class="mb-3">
+                                <label for="edit-customer-name" class="form-label">Customer Name</label>
+                                <input type="text" class="form-control" id="edit-customer-name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit-product-name" class="form-label">Product</label>
+                                <input type="text" class="form-control" id="edit-product-name" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit-order-amount" class="form-label">Amount</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="edit-order-amount" min="0.01" step="0.01" required>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit-order-status" class="form-label">Status</label>
+                                <select class="form-select" id="edit-order-status" required>
+                                    <option value="pending">Pending</option>
+                                    <option value="paid">Paid</option>
+                                    <option value="failed">Failed</option>
+                                </select>
+                            </div>
+                        </form>
                     </div>
-                    <div class="mb-3">
-                        <label for="edit-order-amount" class="form-label">Amount</label>
-                        <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            <input type="number" class="form-control" id="edit-order-amount" min="0.01" step="0.01" required>
-                        </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle me-2"></i>Cancel
+                        </button>
+                        <button type="button" class="btn btn-primary" id="confirm-edit-order">
+                            <i class="bi bi-check-circle me-2"></i>Save Changes
+                        </button>
                     </div>
-                    <div class="mb-3">
-                        <label for="edit-order-status" class="form-label">Status</label>
-                        <select class="form-select" id="edit-order-status" required>
-                            <option value="pending">Pending</option>
-                            <option value="paid">Paid</option>
-                            <option value="failed">Failed</option>
-                        </select>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                    <i class="bi bi-x-circle me-2"></i>Cancel
-                </button>
-                <button type="button" class="btn btn-primary" id="confirm-edit-order">
-                    <i class="bi bi-check-circle me-2"></i>Save Changes
-                </button>
+                </div>
             </div>
         </div>
     </div>
-</div>
+
+    <!-- Add this just before closing </body> tag in index.html -->
+<footer class="footer mt-auto py-4 bg-dark text-light animate__animated animate__fadeInUp">
+  <div class="container-fluid">
+    <div class="row align-items-center">
+      <!-- System Info -->
+      <div class="col-md-4 text-center text-md-start">
+        <div class="d-flex align-items-center justify-content-center justify-content-md-start">
+          <img src="ghala-logo.svg" alt="Ghala Logo" width="30" class="me-2">
+          <span class="fw-bold">Ghala Merchant System</span>
+        </div>
+        <small class="d-block mt-1">v2.1.0 | Secure Payment Portal</small>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="col-md-4 text-center my-3 my-md-0">
+        <div class="btn-group" role="group">
+          <button class="btn btn-outline-light btn-sm footer-btn" onclick="showSection('dashboard')">
+            <i class="bi bi-speedometer2"></i> Dashboard
+          </button>
+          <button class="btn btn-outline-light btn-sm footer-btn" onclick="showSection('orders')">
+            <i class="bi bi-receipt"></i> Orders
+          </button>
+          <button class="btn btn-outline-light btn-sm footer-btn" data-bs-toggle="modal" data-bs-target="#helpModal">
+            <i class="bi bi-question-circle"></i> Help
+          </button>
+        </div>
+      </div>
+
+      <!-- Creator & Social -->
+      <div class="col-md-4 text-center text-md-end">
+        <div class="creator-signature">
+          <span class="text-muted">Crafted with</span>
+          <i class="bi bi-heart-fill text-danger mx-1"></i>
+          <span>by Aziry</span>
+          <div class="social-links mt-2">
+            <a href="#" class="text-light mx-2" data-bs-toggle="tooltip" title="GitHub">
+              <i class="bi bi-github"></i>
+            </a>
+            <a href="#" class="text-light mx-2" data-bs-toggle="tooltip" title="LinkedIn">
+              <i class="bi bi-linkedin"></i>
+            </a>
+            <a href="#" class="text-light mx-2" data-bs-toggle="tooltip" title="Contact">
+              <i class="bi bi-envelope-fill"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Copyright + System Status -->
+    <div class="row mt-3">
+      <div class="col-12 text-center">
+        <small class="d-block text-muted">
+          &copy; <span id="current-year"></span> Ghala Systems. All rights reserved.
+          <span class="system-status ms-3">
+            <i class="bi bi-circle-fill text-success"></i>
+            <span>System Operational</span>
+          </span>
+        </small>
+      </div>
+    </div>
+  </div>
+</footer>
+
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="app.js"></script>

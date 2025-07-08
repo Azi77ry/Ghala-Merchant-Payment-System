@@ -32,6 +32,8 @@ const settingsData = document.getElementById('settings-data');
 const createOrderBtn = document.getElementById('create-order-btn');
 const refreshOrdersBtn = document.getElementById('refresh-orders-btn');
 const confirmCreateOrderBtn = document.getElementById('confirm-create-order');
+const confirmEditOrderBtn = document.getElementById('confirm-edit-order');
+const refreshDashboardBtn = document.getElementById('refresh-dashboard-btn');
 
 // Navigation links
 const navLinks = document.querySelectorAll('.nav-link[data-section]');
@@ -82,6 +84,8 @@ document.addEventListener('DOMContentLoaded', function() {
     createOrderBtn.addEventListener('click', () => new bootstrap.Modal(document.getElementById('createOrderModal')).show());
     confirmCreateOrderBtn.addEventListener('click', createTestOrder);
     refreshOrdersBtn.addEventListener('click', loadOrders);
+    refreshDashboardBtn.addEventListener('click', refreshDashboard);
+    confirmEditOrderBtn.addEventListener('click', saveEditedOrder);
 });
 
 function init() {
@@ -133,6 +137,7 @@ function updateChartThemes() {
     const isDarkMode = document.body.classList.contains('dark-mode');
     const textColor = isDarkMode ? '#f8f9fa' : '#212529';
     const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+    const bgColor = isDarkMode ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)';
     
     Object.values(charts).forEach(chart => {
         if (chart) {
@@ -140,6 +145,7 @@ function updateChartThemes() {
             chart.options.scales.y.grid.color = gridColor;
             chart.options.scales.x.ticks.color = textColor;
             chart.options.scales.y.ticks.color = textColor;
+            chart.options.plugins.legend.labels.color = textColor;
             chart.update();
         }
     });
@@ -282,7 +288,8 @@ function createPaymentMethodsChart(data) {
                     position: 'bottom',
                     labels: {
                         usePointStyle: true,
-                        padding: 20
+                        padding: 20,
+                        color: '#212529'
                     }
                 }
             }
@@ -385,7 +392,8 @@ function createStatusDistributionChart(data) {
                     position: 'bottom',
                     labels: {
                         usePointStyle: true,
-                        padding: 20
+                        padding: 20,
+                        color: '#212529'
                     }
                 },
                 tooltip: {
@@ -788,9 +796,7 @@ async function savePaymentSettings(e) {
         
         if (data.success) {
             alert('Payment settings saved successfully');
-            // Force reload of settings
             await loadPaymentSettings();
-            // Update charts if needed
             initCharts();
         } else {
             alert('Failed to save payment settings: ' + (data.message || 'Unknown error'));
@@ -901,118 +907,17 @@ async function createTestOrder() {
     }
 }
 
-async function loadOrders() {
-    try {
-        const response = await fetch(`http://localhost:5000/orders/${currentMerchantId}`);
-        const orders = await response.json();
-        
-        ordersTable.innerHTML = '';
-        recentOrdersTable.innerHTML = '';
-        
-        let totalOrders = 0;
-        let paidOrders = 0;
-        let failedOrders = 0;
-        let totalRevenue = 0;
-        
-        orders.sort((a, b) => b.timestamp - a.timestamp);
-        
-        orders.forEach(order => {
-            totalOrders++;
-            if (order.status === 'paid') {
-                paidOrders++;
-                totalRevenue += order.total;
-            }
-            if (order.status === 'failed') failedOrders++;
-            
-            const date = new Date(order.timestamp * 1000);
-            const dateStr = date.toLocaleString();
-            
-            const row = document.createElement('tr');
-            row.className = 'order-card';
-            row.innerHTML = `
-                <td>${order.id.substring(0, 8)}...</td>
-                <td>${order.customer_name}</td>
-                <td>${order.product}</td>
-                <td>$${order.total.toFixed(2)}</td>
-                <td><span class="status-badge status-${order.status}">${order.status}</span></td>
-                <td>${dateStr}</td>
-                <td>
-                    ${order.status === 'pending' ? 
-                        `<button class="btn btn-sm btn-outline-primary simulate-payment" data-order-id="${order.id}" data-bs-toggle="tooltip" title="Simulate payment processing">
-                            <i class="bi bi-credit-card"></i>
-                        </button>` : ''}
-                </td>
-            `;
-            ordersTable.appendChild(row);
-            
-            if (recentOrdersTable.children.length < 5) {
-                const recentRow = document.createElement('tr');
-                recentRow.innerHTML = `
-                    <td>${order.id.substring(0, 8)}...</td>
-                    <td>${order.product}</td>
-                    <td>$${order.total.toFixed(2)}</td>
-                    <td><span class="status-badge status-${order.status}">${order.status}</span></td>
-                    <td>${dateStr}</td>
-                `;
-                recentOrdersTable.appendChild(recentRow);
-            }
-        });
-        
-        totalOrdersDisplay.textContent = totalOrders;
-        paidOrdersDisplay.textContent = paidOrders;
-        failedOrdersDisplay.textContent = failedOrders;
-        
-        document.getElementById('total-revenue').textContent = `$${totalRevenue.toFixed(2)}`;
-        
-        document.querySelectorAll('.simulate-payment').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const orderId = e.target.closest('button').getAttribute('data-order-id');
-                simulatePayment(orderId);
-            });
-        });
-        
-        initCharts();
-    } catch (error) {
-        console.error('Error loading orders:', error);
-    }
-}
-
-async function simulatePayment(orderId) {
-    try {
-        const response = await fetch(`http://localhost:5000/simulate-payment/${currentMerchantId}/${orderId}`, {
-            method: 'POST'
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            alert('Payment simulation started. Status will update in a few seconds.');
-            setTimeout(loadOrders, 6000);
-        } else {
-            alert(data.message || 'Failed to simulate payment');
-        }
-    } catch (error) {
-        console.error('Error simulating payment:', error);
-        alert('An error occurred while simulating payment');
-    }
-}
-
-// Add to your existing functions in app.js
-
 async function editOrder(orderId) {
     try {
-        // Get the order details
         const response = await fetch(`http://localhost:5000/order/${currentMerchantId}/${orderId}`);
         const order = await response.json();
         
-        // Populate the edit modal
         document.getElementById('edit-order-id').value = order.id;
         document.getElementById('edit-customer-name').value = order.customer_name;
         document.getElementById('edit-product-name').value = order.product;
         document.getElementById('edit-order-amount').value = order.total;
         document.getElementById('edit-order-status').value = order.status;
         
-        // Show the modal
         const editModal = new bootstrap.Modal(document.getElementById('editOrderModal'));
         editModal.show();
     } catch (error) {
@@ -1050,9 +955,7 @@ async function saveEditedOrder() {
         const data = await response.json();
         
         if (data.success) {
-            // Close the modal
             bootstrap.Modal.getInstance(document.getElementById('editOrderModal')).hide();
-            // Refresh the orders list
             await loadOrders();
         } else {
             alert('Failed to update order: ' + (data.message || 'Unknown error'));
@@ -1076,7 +979,6 @@ async function deleteOrder(orderId) {
         const data = await response.json();
         
         if (data.success) {
-            // Refresh the orders list
             await loadOrders();
         } else {
             alert('Failed to delete order: ' + (data.message || 'Unknown error'));
@@ -1087,7 +989,26 @@ async function deleteOrder(orderId) {
     }
 }
 
-// Update the loadOrders function to include edit/delete buttons
+async function simulatePayment(orderId) {
+    try {
+        const response = await fetch(`http://localhost:5000/simulate-payment/${currentMerchantId}/${orderId}`, {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('Payment simulation started. Status will update in a few seconds.');
+            setTimeout(loadOrders, 6000);
+        } else {
+            alert(data.message || 'Failed to simulate payment');
+        }
+    } catch (error) {
+        console.error('Error simulating payment:', error);
+        alert('An error occurred while simulating payment');
+    }
+}
+
 async function loadOrders() {
     try {
         const response = await fetch(`http://localhost:5000/orders/${currentMerchantId}`);
@@ -1190,5 +1111,26 @@ async function loadOrders() {
     }
 }
 
-// Add event listener for the save edit button
-document.getElementById('confirm-edit-order').addEventListener('click', saveEditedOrder);
+function refreshDashboard() {
+    loadOrders();
+    initCharts();
+}
+
+
+function initFooter() {
+  // Update copyright year
+  document.getElementById('current-year').textContent = new Date().getFullYear();
+  
+  // Add footer button effects
+  document.querySelectorAll('.footer-btn').forEach(btn => {
+    btn.addEventListener('mouseenter', () => {
+      btn.classList.add('animate__animated', 'animate__pulse');
+    });
+    btn.addEventListener('mouseleave', () => {
+      btn.classList.remove('animate__animated', 'animate__pulse');
+    });
+  });
+}
+
+// Call this in your DOMContentLoaded event
+document.addEventListener('DOMContentLoaded', initFooter);

@@ -71,15 +71,15 @@ class Database:
         self.payment_methods = {
             "mobile": {
                 "required_fields": ["label", "provider", "phone_number"],
-                "providers": ["MTN", "Airtel", "Zamtel"]
+                "providers": ["Yas", "Airtel", "Halotel","Vodacom"]
             },
             "card": {
                 "required_fields": ["label", "card_number", "expiry", "cvv"],
-                "providers": ["Visa", "Mastercard", "American Express"]
+                "providers": ["Visa", "Mastercard", "Tembo Card"]
             },
             "bank": {
                 "required_fields": ["label", "account_number", "bank_name", "branch_code"],
-                "providers": ["ZANACO", "Stanbic", "Absa", "FNB"]
+                "providers": ["NBC", "CRDB", "NMB", "EQUITY"]
             }
         }
         self.load_data()
@@ -308,25 +308,75 @@ def create_order(merchant_id):
     data = request.get_json()
     order_id = str(uuid.uuid4())
     
-    order = Order(
-        id=order_id,
-        merchant_id=merchant_id,
-        customer_name=data['customer_name'],
-        product=data['product'],
-        total=data['total'],
-        status="pending",
-        timestamp=time.time(),
-        payment_method=db.merchants[merchant_id].method,
-        commission=round(data['total'] * db.merchants[merchant_id].commission_rate / 100, 2)
-    )
+    if merchant_id not in db.merchants:
+        return jsonify({"success": False, "message": "Merchant not found"}), 404
     
-    db.orders[merchant_id][order_id] = order
-    db.save_data()
+    try:
+        order = Order(
+            id=order_id,
+            merchant_id=merchant_id,
+            customer_name=data['customer_name'],
+            product=data['product'],
+            total=float(data['total']),
+            status="pending",
+            timestamp=time.time(),
+            payment_method=db.merchants[merchant_id].method,
+            commission=round(float(data['total']) * db.merchants[merchant_id].commission_rate / 100, 2)
+        )
+        
+        db.orders[merchant_id][order_id] = order
+        db.save_data()
+        
+        return jsonify({
+            "success": True,
+            "order_id": order_id,
+            "order": asdict(order)
+        })
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "message": f"Error creating order: {str(e)}"
+        }), 400
+
+@app.route('/order/<merchant_id>/<order_id>', methods=['GET', 'PUT', 'DELETE'])
+def order_detail(merchant_id, order_id):
+    if merchant_id not in db.orders or order_id not in db.orders[merchant_id]:
+        return jsonify({"success": False, "message": "Order not found"}), 404
     
-    return jsonify({
-        "success": True,
-        "order_id": order_id
-    })
+    order = db.orders[merchant_id][order_id]
+    
+    if request.method == 'GET':
+        return jsonify(asdict(order))
+    
+    elif request.method == 'PUT':
+        data = request.get_json()
+        
+        # Update order fields
+        if 'customer_name' in data:
+            order.customer_name = data['customer_name']
+        if 'product' in data:
+            order.product = data['product']
+        if 'total' in data:
+            order.total = float(data['total'])
+        if 'status' in data:
+            order.status = data['status']
+            if data['status'] == 'paid' and order.status != 'paid':
+                order.payment_processed_at = time.time()
+        
+        db.save_data()
+        return jsonify({
+            "success": True,
+            "message": "Order updated",
+            "order": asdict(order)
+        })
+    
+    elif request.method == 'DELETE':
+        del db.orders[merchant_id][order_id]
+        db.save_data()
+        return jsonify({
+            "success": True,
+            "message": "Order deleted"
+        })
 
 @app.route('/simulate-payment/<merchant_id>/<order_id>', methods=['POST'])
 def simulate_payment(merchant_id, order_id):
@@ -404,47 +454,6 @@ def get_status_distribution(merchant_id):
             statuses[key] = round((statuses[key] / total) * 100, 1)
     
     return jsonify(statuses)
-# Add to your existing endpoints in app.py
-
-@app.route('/order/<merchant_id>/<order_id>', methods=['GET', 'PUT', 'DELETE'])
-def order_detail(merchant_id, order_id):
-    if merchant_id not in db.orders or order_id not in db.orders[merchant_id]:
-        return jsonify({"success": False, "message": "Order not found"}), 404
-    
-    order = db.orders[merchant_id][order_id]
-    
-    if request.method == 'GET':
-        return jsonify(asdict(order))
-    
-    elif request.method == 'PUT':
-        data = request.get_json()
-        
-        # Update order fields
-        if 'customer_name' in data:
-            order.customer_name = data['customer_name']
-        if 'product' in data:
-            order.product = data['product']
-        if 'total' in data:
-            order.total = float(data['total'])
-        if 'status' in data:
-            order.status = data['status']
-            if data['status'] == 'paid' and order.status != 'paid':
-                order.payment_processed_at = time.time()
-        
-        db.save_data()
-        return jsonify({
-            "success": True,
-            "message": "Order updated",
-            "order": asdict(order)
-        })
-    
-    elif request.method == 'DELETE':
-        del db.orders[merchant_id][order_id]
-        db.save_data()
-        return jsonify({
-            "success": True,
-            "message": "Order deleted"
-        })
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

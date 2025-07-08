@@ -2,19 +2,19 @@
   "merchants": {
     "m1": {
       "id": "m1",
-      "method": "card",
-      "label": "def",
-      "provider": "Visa",
+      "method": "bank",
+      "label": "My Mobile Money",
+      "provider": "Absa",
       "phone_number": "0977123456",
       "card_number": "34",
       "expiry": "444",
       "cvv": "r424",
-      "account_number": null,
-      "bank_name": null,
-      "branch_code": null,
+      "account_number": "666544",
+      "bank_name": "nmb",
+      "branch_code": "678765",
       "commission_rate": 2.5,
       "created_at": 1751207741.204677,
-      "updated_at": 1751213426.175527
+      "updated_at": 1751990292.1227674
     },
     "m2": {
       "id": "m2",
@@ -178,6 +178,42 @@
         "payment_method": "mobile",
         "commission": 50.0,
         "payment_processed_at": 1751213109.3605828
+      },
+      "5ee173cb-2fea-4c5b-a31c-9e86bd2e0cd3": {
+        "id": "5ee173cb-2fea-4c5b-a31c-9e86bd2e0cd3",
+        "merchant_id": "m1",
+        "customer_name": "juma",
+        "product": "Test Productpeni",
+        "total": 300.0,
+        "status": "paid",
+        "timestamp": 1751990369.61132,
+        "payment_method": "bank",
+        "commission": 7.5,
+        "payment_processed_at": 1751990379.50755
+      },
+      "980555da-75c4-4bfe-b46c-8b83afba1ee4": {
+        "id": "980555da-75c4-4bfe-b46c-8b83afba1ee4",
+        "merchant_id": "m1",
+        "customer_name": "azizi",
+        "product": "ndizi",
+        "total": 2000.0,
+        "status": "paid",
+        "timestamp": 1751990527.7826524,
+        "payment_method": "bank",
+        "commission": 50.0,
+        "payment_processed_at": 1751990609.5204206
+      },
+      "b9ad15a0-05fd-43ec-9dd8-7780d15b6f04": {
+        "id": "b9ad15a0-05fd-43ec-9dd8-7780d15b6f04",
+        "merchant_id": "m1",
+        "customer_name": "azzi",
+        "product": "friji",
+        "total": 10000.0,
+        "status": "paid",
+        "timestamp": 1751990666.0411336,
+        "payment_method": "bank",
+        "commission": 250.0,
+        "payment_processed_at": 1751990686.6400516
       }
     },
     "m2": {

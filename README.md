@@ -16,24 +16,25 @@ This is a simulation system built for the **Ghala Technical Intern Challenge**. 
 - Responsive UI using Bootstrap + Chart.js
 
 ## 🛠️ Tech Stack
+## Technologies Used
 
-| Frontend              | Backend     | Data Storage |
-|-----------------------|-------------|--------------|
-| HTML, CSS, Bootstrap  | Flask (Python) | JSON file (mock DB) |
-| JavaScript (Chart.js) |                 | `merchant_data.json` |
+- **Frontend**: HTML5, CSS3, JavaScript (Chart.js, Bootstrap 5)
+- **Backend**: Python Flask
+- **Database**: JSON-based file storage (easy to migrate to SQL)
 
 ## 📁 Folder Structure
 
 ```
-ghala-merchant-system/
+ghala-merchant-payment-system/
 ├──
 │   └── app.py
 │   └── merchant_data.json
-├── 
+
+├
 │   ├── index.html
 │   ├── styles.css
 │   └── app.js
-├── README.md
+├─── README.md
 ```
 
 ## ✅ Getting Started
