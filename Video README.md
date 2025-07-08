@@ -1,8 +1,8 @@
 # 📦 Ghala Merchant Payment System – Core Simulation
 
 This is a simulation system built for the **Ghala Technical Intern Challenge**. It demonstrates how merchants configure payment methods and handle customer orders with payment tracking and real-time analytics.
-
-[![VIDEO PRESENTATION ](https://img.youtube.com/vi/abcdefghijk/0.jpg)](https://drive.google.com/file/d/1-3JxMcpaZb349J0rJt85ZhsHskT_o9Hm/view?usp=drivesdk)
+## To watch video click the link below 👇 👇 👇 👇 🎥📽️🎥
+[![VIDEO PRESENTATION ]( https://drive.google.com/file/d/1-GLRSbssyWX_5C70xZd4klaLv-l6Z3DU/view?usp=drivesdk )](https://drive.google.com/file/d/1-3JxMcpaZb349J0rJt85ZhsHskT_o9Hm/view?usp=drivesdk)
 
 ## 🚀 Features
 
