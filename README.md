@@ -2,6 +2,8 @@
 
 This is a simulation system built for the **Ghala Technical Intern Challenge**. It demonstrates how merchants configure payment methods and handle customer orders with payment tracking and real-time analytics.
 
+### [WATCH VIDEO PRESENTATION HERE] (VIDEO PRESENTATION.mkv)
+
 ## 🚀 Features
 
 - Merchant login system
@@ -47,21 +49,13 @@ cd ghala-merchant-system
 ```
 
 ### 2. Start the Backend
-### Install python library 
-pip install flask flask-cors
+Install python library 
+### pip install flask flask-cors
 
 after installing required library run the command below to start backend app.py
 
-python app.py
-```
-
-> 🟢 Flask server will run at: `http://localhost:5000`
-
-### 3. Start the Frontend
-
-Open `index.html` directly in your browser:
-
-```
+### python app.py
+ After running app.py server go direct in the index.html file and open it with any browser eg: chrome
 
 ## 👤 Sample Users
 then login details you can select admin as username and password as admin123
@@ -69,7 +63,7 @@ then login details you can select admin as username and password as admin123
 | Username    | Password     | Role     |
 |-------------|--------------|----------|
 | admin       | admin123     | admin    |
-| merchant2   | merchant123  | Merchant(m2)|
+
 
 
 ## 📊 Analytics Preview
@@ -78,16 +72,6 @@ then login details you can select admin as username and password as admin123
 - Line chart: Orders vs Revenue
 - Doughnut chart: Payment method usage
 - Pie chart: Paid vs Pending vs Failed
-
-## 🧪 Test Scenario
-
-1. Login as `merchant1`
-2. Configure a payment method under "Payment Settings"
-3. Go to "Orders" and create a test order
-4. Simulate payment on the order
-5. Return to "Dashboard" to view updated analytics
-
-## 📌 Notes
 
 - All data is stored in `merchant_data.json` (no external DB needed).
 - Payments are simulated asynchronously (status changes after ~3 seconds).
