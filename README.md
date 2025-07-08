@@ -2,7 +2,7 @@
 
 This is a simulation system built for the **Ghala Technical Intern Challenge**. It demonstrates how merchants configure payment methods and handle customer orders with payment tracking and real-time analytics.
 
-### [WATCH VIDEO PRESENTATION HERE] (VIDEO PRESENTATION.mkv)
+[![VIDEO PRESENTATION ](https://img.youtube.com/vi/abcdefghijk/0.jpg)](https://drive.google.com/file/d/1-3JxMcpaZb349J0rJt85ZhsHskT_o9Hm/view?usp=drivesdk)
 
 ## 🚀 Features
 
